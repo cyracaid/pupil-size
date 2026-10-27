@@ -433,6 +433,145 @@ classdef PupilDataModel < handle
         
         
         %==================================================================
+        function exportSegments(objArray, outputFolder, options)
+            % exportSegments Writes each segment's smooth signal per-file CSV.
+            %
+            %   exportSegments(hPupilData, outputFolder)
+            %   exportSegments(hPupilData, outputFolder, options)
+            %
+            %    options is a struct with any of the following fields
+            %    (or 'name',value pairs):
+            %       Eyes         cellstr, subset of {'left','right','mean'};
+            %                    default: all eyes that have processed data
+            %       SegmentTypes cellstr; default: all types present in
+            %                    the segmentsTable
+            %       NaNString    how to write NaN pupil samples
+            %                    (default 'NaN'; '' writes an empty cell)
+            %
+            %    For every PupilDataModel instance, one CSV is written per
+            %    eye, named '<filename>_<eye>pupil_segments.csv', with the
+            %    columns:
+            %       segmentName, segmentType, segmentStart_s, tRel_s,
+            %       pupilDiameter_<unit>, gap_ms
+            %    Rows are the upsampled smooth-signal samples inside each
+            %    segment ([segmentStart, segmentEnd)); samples that were
+            %    interpolated over too-large gaps are NaN (see
+            %    ValidSamplesModel.interpAndSmooth).
+            %
+            %    This provides what analyzeSegments' descriptive stats
+            %    cannot: the continuous, event-locked time courses needed
+            %    for windowed peak extraction, per-bin averaging, or
+            %    GAMM-style trajectory models.
+            %
+            %--------------------------------------------------------------
+
+            % Parse options struct:
+            if nargin < 3, options = struct(); end
+            if ~isstruct(options)
+                error('exportSegments:BadOptions'...
+                    ,'Options must be a struct.');
+            end
+            if ~isfield(options,'Eyes')...
+                    || isempty(options.Eyes)
+                options.Eyes = {};
+            end
+            if ~isfield(options,'SegmentTypes')...
+                    || isempty(options.SegmentTypes)
+                options.SegmentTypes = {};
+            end
+            if ~isfield(options,'NaNString')
+                options.NaNString = 'NaN';
+            end
+
+            if ~exist(outputFolder,'dir'), mkdir(outputFolder); end
+
+            for curDataIndx = 1:numel(objArray)
+
+                obj = objArray(curDataIndx);
+                if isempty(obj.segmentsTable) ...
+                        || height(obj.segmentsTable)==0
+                    printToConsole(3 ...
+                        ,'File %i (%s): no segments, skipped.\n'...
+                        ,curDataIndx, obj.filename);
+                    continue;
+                end
+
+                % Eyes to export:
+                eyes = obj.eyesWithData;
+                if ~isempty(obj.meanPupil_ValidSamples)
+                    eyes = [eyes {'mean'}];
+                end
+                if ~isempty(options.Eyes)
+                    eyes = intersect(eyes, options.Eyes, 'stable');
+                end
+
+                segTable = obj.segmentsTable;
+                useRows  = true(height(segTable),1);
+                if ~isempty(options.SegmentTypes)
+                    if ~ismember('segmentType'...
+                            ,segTable.Properties.VariableNames)
+                        error('exportSegments:NoSegmentType'...
+                            ,['segmentsTable has no segmentType' ...
+                            ' variable.']);
+                    end
+                    useRows = ismember(segTable.segmentType...
+                        ,options.SegmentTypes);
+                end
+
+                for curEye = eyes
+                    vsm = obj.([curEye{1} 'Pupil_ValidSamples']);
+                    if isempty(vsm), continue; end
+                    sigT   = vsm.signal.t;
+                    sigDia = vsm.signal.pupilDiameter;
+                    sigGap = vsm.signal.gap_ms;
+
+                    [~, baseName, ~] = fileparts(obj.filename);
+                    outName = sprintf('%s_%spupil_segments.csv'...
+                        ,baseName, curEye{1});
+                    outPath = fullfile(outputFolder, outName);
+                    fid = fopen(outPath,'w');
+                    assert(fid>0,'Cannot open %s for writing.', outPath);
+                    fprintf(fid,['segmentName,segmentType,segmentStart_s'...
+                        ',tRel_s,pupilDiameter_%s,gap_ms\n']...
+                        ,obj.diameterUnit);
+                    nRows = 0;
+                    for s = find(useRows).'
+                        t0   = segTable.segmentStart(s);
+                        t1   = segTable.segmentEnd(s);
+                        m    = find(sigT >= t0 & sigT < t1);
+                        if isempty(m), continue; end
+                        segName = char(segTable.segmentName{s});
+                        if ismember('segmentType'...
+                                ,segTable.Properties.VariableNames)
+                            segType = char(segTable.segmentType{s});
+                        else
+                            segType = '';
+                        end
+                        tRel = sigT(m) - t0;
+                        for ii = 1:numel(m)
+                            if isnan(sigDia(m(ii)))
+                                diaStr = options.NaNString;
+                            else
+                                diaStr = sprintf('%.4f', sigDia(m(ii)));
+                            end
+                            fprintf(fid,'%s,%s,%.4f,%.4f,%s,%.1f\n'...
+                                ,segName, segType, t0, tRel(ii)...
+                                ,diaStr, sigGap(m(ii)));
+                        end
+                        nRows = nRows + numel(m);
+                    end
+                    fclose(fid);
+                    printToConsole(3 ...
+                        ,'File %i (%s) %s pupil: wrote %i samples to %s\n'...
+                        ,curDataIndx, obj.filename, curEye{1}...
+                        ,nRows, outName);
+                end
+            end
+
+        end
+
+
+        %==================================================================
         function plotData(objArray)
             % plotData Plots data of one or more PupilDataModel objects.
             %
