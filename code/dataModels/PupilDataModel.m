@@ -447,12 +447,17 @@ classdef PupilDataModel < handle
             %                    the segmentsTable
             %       NaNString    how to write NaN pupil samples
             %                    (default 'NaN'; '' writes an empty cell)
+            %       ZScore       false (default); true adds a
+            %                    pupilDiameterZ column = (value - mean)/sd
+            %                    of the non-NaN smooth signal of the WHOLE
+            %                    recording (per eye, per subject) — the
+            %                    Leuchs 2017 whole-recording z-score
             %
             %    For every PupilDataModel instance, one CSV is written per
             %    eye, named '<filename>_<eye>pupil_segments.csv', with the
             %    columns:
             %       segmentName, segmentType, segmentStart_s, tRel_s,
-            %       pupilDiameter_<unit>, gap_ms
+            %       pupilDiameter_<unit>, gap_ms [, pupilDiameterZ]
             %    Rows are the upsampled smooth-signal samples inside each
             %    segment ([segmentStart, segmentEnd)); samples that were
             %    interpolated over too-large gaps are NaN (see
@@ -481,6 +486,9 @@ classdef PupilDataModel < handle
             end
             if ~isfield(options,'NaNString')
                 options.NaNString = 'NaN';
+            end
+            if ~isfield(options,'ZScore')
+                options.ZScore = false;
             end
 
             if ~exist(outputFolder,'dir'), mkdir(outputFolder); end
@@ -525,15 +533,33 @@ classdef PupilDataModel < handle
                     sigDia = vsm.signal.pupilDiameter;
                     sigGap = vsm.signal.gap_ms;
 
+                    % Whole-recording z-score stats (Leuchs 2017), per eye:
+                    if options.ZScore
+                        okDia   = ~isnan(sigDia);
+                        diaMean = mean(sigDia(okDia));
+                        diaSd   = std(sigDia(okDia));
+                    else
+                        diaMean = NaN;
+                        diaSd   = NaN;
+                    end
+
                     [~, baseName, ~] = fileparts(obj.filename);
                     outName = sprintf('%s_%spupil_segments.csv'...
                         ,baseName, curEye{1});
                     outPath = fullfile(outputFolder, outName);
                     fid = fopen(outPath,'w');
                     assert(fid>0,'Cannot open %s for writing.', outPath);
-                    fprintf(fid,['segmentName,segmentType,segmentStart_s'...
-                        ',tRel_s,pupilDiameter_%s,gap_ms\n']...
-                        ,obj.diameterUnit);
+                    if options.ZScore
+                        fprintf(fid,['segmentName,segmentType'...
+                            ',segmentStart_s,tRel_s'...
+                            ',pupilDiameter_%s,gap_ms,pupilDiameterZ\n']...
+                            ,obj.diameterUnit);
+                    else
+                        fprintf(fid,['segmentName,segmentType'...
+                            ',segmentStart_s,tRel_s'...
+                            ',pupilDiameter_%s,gap_ms\n']...
+                            ,obj.diameterUnit);
+                    end
                     nRows = 0;
                     for s = find(useRows).'
                         t0   = segTable.segmentStart(s);
@@ -551,20 +577,42 @@ classdef PupilDataModel < handle
                         for ii = 1:numel(m)
                             if isnan(sigDia(m(ii)))
                                 diaStr = options.NaNString;
+                                zStr   = options.NaNString;
                             else
                                 diaStr = sprintf('%.4f', sigDia(m(ii)));
+                                if options.ZScore
+                                    zStr = sprintf('%.4f'...
+                                        ,(sigDia(m(ii))-diaMean)/diaSd);
+                                else
+                                    zStr = '';
+                                end
                             end
-                            fprintf(fid,'%s,%s,%.4f,%.4f,%s,%.1f\n'...
-                                ,segName, segType, t0, tRel(ii)...
-                                ,diaStr, sigGap(m(ii)));
+                            if options.ZScore
+                                fprintf(fid...
+                                    ,'%s,%s,%.4f,%.4f,%s,%.1f,%s\n'...
+                                    ,segName, segType, t0, tRel(ii)...
+                                    ,diaStr, sigGap(m(ii)), zStr);
+                            else
+                                fprintf(fid,'%s,%s,%.4f,%.4f,%s,%.1f\n'...
+                                    ,segName, segType, t0, tRel(ii)...
+                                    ,diaStr, sigGap(m(ii)));
+                            end
                         end
                         nRows = nRows + numel(m);
                     end
                     fclose(fid);
-                    printToConsole(3 ...
-                        ,'File %i (%s) %s pupil: wrote %i samples to %s\n'...
-                        ,curDataIndx, obj.filename, curEye{1}...
-                        ,nRows, outName);
+                    if options.ZScore
+                        printToConsole(3 ...
+                            ,['File %i (%s) %s pupil: wrote %i samples' ...
+                            ' to %s (z: mean %.2f, sd %.2f)\n']...
+                            ,curDataIndx, obj.filename, curEye{1}...
+                            ,nRows, outName, diaMean, diaSd);
+                    else
+                        printToConsole(3 ...
+                            ,'File %i (%s) %s pupil: wrote %i samples to %s\n'...
+                            ,curDataIndx, obj.filename, curEye{1}...
+                            ,nRows, outName);
+                    end
                 end
             end
 
