@@ -20,9 +20,12 @@ if ~(isnumeric(Wn) && isscalar(Wn) && Wn > 0 && Wn < 1)
         ' Fallback supports only lowpass with 0 < Wn < 1 (Nyquist = 1).']);
 end
 
-% Digital cutoff (rad/sample) and its prewarped analog counterpart:
+% Digital cutoff (rad/sample) and its prewarped analog counterpart.
+% Bilinear prewarping: Omega = (2/T)*tan(omega/2) with T = 1/fs = 1/2, so
+% (2/T) = 4. (An earlier version divided omega by 4 instead of 2, which
+% shifted the realized cutoff; verified against scipy.signal.butter.)
 omegaC = pi*Wn;
-OmegaC = 4*tan(omegaC/4);   % fs = 2 convention (s = 4 (z-1)/(z+1))
+OmegaC = 4*tan(omegaC/2);   % fs = 2 convention (s = 4 (z-1)/(z+1))
 
 % Analog Butterworth prototype poles (left half plane) and their digital
 % images; an n-th order lowpass has all n zeros at z = -1:
