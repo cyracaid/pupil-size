@@ -172,16 +172,21 @@ classdef PupilDataModel < handle
             
             obj.segmentsTable = table();
             
-            % Compatibility check:
-            assert(ispc,['This script will not work on any OS other'...
-                ' than Windows.']);
-            
+            % Compatibility check (fork patch: original asserted ispc and
+            % used a hardcoded '\' separator; both blocked macOS/Linux use):
             if nargin>0
                 obj.filename = filename;
-                obj.filepath = [filepath '\'];
+                if ispc
+                    obj.filepath = [filepath '\'];
+                else
+                    obj.filepath = filepath;
+                    if ~endsWith(obj.filepath, filesep)
+                        obj.filepath = [obj.filepath, filesep];
+                    end
+                end
                 
                 % Load the data from the mat file:
-                s = load([filepath filename]);
+                s = load([obj.filepath filename]);
                 
                 % Save data to object:
                 obj.timestamps_RawData_ms = s.diameter.t_ms;
