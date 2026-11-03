@@ -1,0 +1,108 @@
+# YMTC: `.trk` → CSV, and the event-marker table
+
+Two layers that turn the MRC eye-tracker logs of the YMTC task into something you can
+join with pupil data:
+
+1. **`trk2csv`** — one `.trk` text log → one CSV per participant, one row per sample.
+   Anything unexpected is *recorded*, never repaired.
+2. **`ymtcEventTable`** — the software events in the trk plus the task's `TrialOrder` files
+   → a table with one row per marker, in the order the task presents them:
+   `Onset<cond> → PredictableTime…/UnpredictableTime… → Outcome<cond> → WhiteNoise → Rating`.
+
+Requires MATLAB R2019b or newer. **No toolboxes** are needed for anything in this folder.
+
+## Files
+
+```
+trk2csv.m              one .trk file  -> one csv (next to the .trk, or -OutFolder)
+trk2csv_batch.m        a folder of .trk -> <folder>/csv, plus qc summary and issues tables
+private/               reader, event attachment, checks (not called directly)
+tests/                 simulated .trk files, runtests('tests')
+
+ymtcEventTable.m       one subject -> 05_事件对照表/<sub>_event_table.csv
+ymtcEventTableBatch.m  every subject in one go, plus a summary and a combined table
+ymtcRunCheck.m         is every run really 21 trials? (uses BurnInStart, not START)
+```
+
+## Use
+
+Convert one file:
+
+```matlab
+[T, report] = trk2csv('sub001_YMTC_0001.trk');
+```
+
+Convert a folder (writes `csv/` inside it, plus `trk2csv_qc_summary.csv` and
+`trk2csv_issues.csv`):
+
+```matlab
+results = trk2csv_batch('/path/to/raw_trk');
+```
+
+Build the marker table for one subject:
+
+```matlab
+T = ymtcEventTable('sub001');                       % picks the trial order automatically
+T = ymtcEventTable('sub001', 'Order', 4);           % force an order
+T = ymtcEventTable('sub001', 'NoiseParts', false);  % 4-5 rows per trial, no WhiteNoise parts
+```
+
+All subjects, then the cheap checks:
+
+```matlab
+S = ymtcEventTableBatch;
+S = ymtcEventTableBatch('NoiseParts', false);       % 5-step version, *_5step.csv
+R = ymtcRunCheck;
+```
+
+## Folder layout expected by the `ymtc*` functions
+
+`trk2csv` is standalone; the `ymtc*` functions assume this project layout next to the
+folder that contains these files:
+
+```
+03_事件时间线/<sub>_events.csv              participant,time_ms,event  (one row per event)
+TrialOrder-HK/TrialOrder<order>Run<run>.xlsx  names / onsets / durations of every marker
+05_事件对照表/                               output folder, created if missing
+00_数据检查报告/                             ymtcRunCheck output
+```
+
+## Conventions worth knowing
+
+- **No repair.** A missing marker gets an empty time, not an interpolated one. Run numbers
+  in the trk CSV are counted from `START` only, so a file missing its first `START` gets
+  `run 0` for the first run; that is reported, not fixed.
+- **Event attachment.** Each event is attached to the first sample at or after its
+  timestamp, so times carry up to one sample interval (~17 ms at 60 Hz).
+- **Condition names are not in the trk.** They come from the `TrialOrder` workbooks; the
+  order is chosen by matching each trial's countdown length against the five order files.
+  The match margin is printed so a weak match is visible.
+- **Marker ↔ step mapping:** `CueStart` = Onset (1 s cue), `CueFinish` = countdown start,
+  `StimuliStart` = Outcome, `WhitenoiseStart1` = WhiteNoise (parts 2-4 are further marks of
+  the same noise), `RatingStart` = Rating (only on some trials).
+
+## Output columns (`*_event_table.csv`)
+
+| column | meaning |
+|---|---|
+| `ymtc_marker`, `trk_event` | the task's marker name, and the trk event it was matched to |
+| `time_ms`, `t_from_onset_s` | raw timestamp, and seconds from that trial's Onset |
+| `expected_from_onset_s`, `diff_s`, `expected_duration_s` | design values and `measured - designed` |
+| `step` | 1 Onset, 2 countdown start, 3 Outcome, 4 WhiteNoise, 5 Rating |
+| `condition` | `PTCT` / `PTCS` / `PTUO` / `UTCT` / `UTCS` / `UTUO`, read off `Onset<cond>` |
+| `timing`, `certainty`, `outcome` | `P`/`U`, `C`/`U`, and `T`/`S`/`O` (`O` = only revealed at the Outcome) |
+
+`ymtcEventTableBatch` also writes `event_table_summary.csv` (one row per subject: ok /
+skipped_no_file / skipped_no_events / error) and a combined table. `ymtcRunCheck` writes
+`run_check.csv` with the trials-per-run string and a `runAssignmentOK` flag, which is what
+guards the `run = ceil(trial / 21)` assumption inside `ymtcEventTable`.
+
+## Tests
+
+```matlab
+cd('code/ymtc'); runtests('tests')
+```
+
+The suite builds synthetic `.trk` files: normal logs, irregular spacing, missing `START`,
+no events at all, bad lines, a wrong cue duration, the overwrite switch, and batch handling
+of an unreadable file.
