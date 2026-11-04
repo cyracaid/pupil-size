@@ -1,5 +1,8 @@
 function [T, report] = trk2csv(trkFile, options)
 %TRK2CSV Convert one MRC eye-tracker .trk log into ONE csv, and record every anomaly.
+% EN: Convert one MRC .trk log into one csv, recording anomalies instead of repairing them.
+% KO: MRC .trk 로그 하나를 csv 하나로 변환하고, 이상치는 고치지 않고 기록만 한다.
+% ZH: 把单个 MRC .trk 日志转成一个 csv；异常只记录，不修补。
 %
 %   T = trk2csv('sub119_YMTC_..._0001.trk');
 %   [T, report] = trk2csv(trkFile, 'OutFolder', 'D:\ymtc\csv', 'CueDurationSec', 1.0);

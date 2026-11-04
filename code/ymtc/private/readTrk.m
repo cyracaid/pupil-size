@@ -1,5 +1,8 @@
 function S = readTrk(trkFile)
 %READTRK Parse an MRC eye-tracker .trk text log. Nothing is repaired or dropped silently.
+% EN: Parse the .trk text log into header, samples and events. Nothing is repaired.
+% KO: .trk 텍스트 로그를 헤더, 샘플, 이벤트로 파싱한다. 아무것도 고치지 않는다.
+% ZH: 把 .trk 文本日志解析成表头、样本和事件；不做任何修补。
 %   S.header    struct: start_timecounter, start_time_iso, stop_timecounter, stop_time_iso,
 %               presentation_size, distance, column_line, has_stop_line
 %   S.tm        n x 1 sample timestamps (ms)

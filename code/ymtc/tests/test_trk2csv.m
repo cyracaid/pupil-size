@@ -1,5 +1,8 @@
 function tests = test_trk2csv
 %TEST_TRK2CSV Run with: runtests('tests')   (from the toolbox folder)
+% EN: Unit tests for trk2csv, built on synthetic .trk files.
+% KO: 합성 .trk 파일로 만든 trk2csv 단위 테스트.
+% ZH: 用合成的 .trk 文件做的 trk2csv 单元测试。
     tests = functiontests(localfunctions);
 end
 
@@ -14,6 +17,7 @@ function teardownOnce(tc)
 end
 
 % ---------------------------------------------------------------------------------
+% Happy path: a well-formed log converts, events land on the right samples, status is ok.
 function testNormalFileEventsAttachedToSamples(tc)
     f = makeTrk(tc, 'sub001_ok.trk', fullStructure(2, 2));   % 2 runs x 2 trials
     [T, rep] = trk2csv(f, 'ExpectedRuns', 2, 'ExpectedTrialsPerRun', 2, 'Quiet', true);
@@ -33,6 +37,7 @@ function testNormalFileEventsAttachedToSamples(tc)
     verifyEqual(tc, rep.summary.status, "ok");
 end
 
+% Ragged spacing and the 'no pupil / no gaze' fields must become NaN, not errors.
 function testVariableSpacingAndMissingFields(tc)
     lines = [header(); ...
         "1000.0  396.1 149.1  377.3 145.6  12.3722   -6  no gaze  51.1 56.3 1.012153 "; ...
@@ -52,6 +57,7 @@ function testVariableSpacingAndMissingFields(tc)
     verifyFalse(tc, any(rep.issues.code == "MALFORMED_LINES"));
 end
 
+% A missing START is reported (START_COUNT, START_BURNIN_MISMATCH); nothing is invented.
 function testMissingStartIsRecordedNotRepaired(tc)
     s = fullStructure(2, 2);
     s(find(strcmp(s(:,2), 'START'), 1), :) = [];   % drop the first START
@@ -68,6 +74,7 @@ function testMissingStartIsRecordedNotRepaired(tc)
     verifyEqual(tc, max(T.trial), 4);
 end
 
+% A log with no SoftwareEvent lines still converts; run / trial / phase stay empty.
 function testNoEventsIsRecorded(tc)
     lines = [header(); sampleLines(1000, 20); "stop timecounter: 1400.0 time: 2026-06-20T13:49:19.170+0900"];
     f = writeLines(tc, 'sub004_noevents.trk', lines);
@@ -76,6 +83,7 @@ function testNoEventsIsRecorded(tc)
     verifyTrue(tc, all(T.run == 0) && all(string(T.phase) == "pre") && all(T.event == ""));
 end
 
+% Unparseable lines are counted and skipped; they must not abort the conversion.
 function testMalformedLinesCountedAndSkipped(tc)
     lines = [header(); sampleLines(1000, 5); "this is not a sample"; "1100.0 garbage 12"; sampleLines(1200, 5)];
     f = writeLines(tc, 'sub005_bad.trk', lines);
@@ -86,6 +94,7 @@ function testMalformedLinesCountedAndSkipped(tc)
     verifyTrue(tc, any(rep.issues.code == "NO_STOP_LINE"));
 end
 
+% A cue that differs from the setting raises CUE_DURATION and reports min/mean/max.
 function testCueDurationDiffersFromSetting(tc)
     s = {0,'START'; 500,'BurnInStart'; 1000,'CueStart'; 1900,'CueFinish'; 5000,'StimuliStart'; ...
          6000,'CueStart'; 7000,'CueFinish'; 9000,'StimuliStart'};
@@ -99,12 +108,14 @@ function testCueDurationDiffersFromSetting(tc)
     verifyEqual(tc, rep.summary.countdown_max_s, 4.0, 'AbsTol', 1e-9);
 end
 
+% Overwrite=false must refuse to clobber an existing csv instead of replacing it.
 function testOverwriteFlag(tc)
     f = makeTrk(tc, 'sub007_over.trk', fullStructure(1, 1));
     trk2csv(f, 'Quiet', true);
     verifyError(tc, @() trk2csv(f, 'Overwrite', false, 'Quiet', true), 'trk2csv:exists');
 end
 
+% Batch: writes the qc summary and the issues table, and keeps going when one file is unreadable.
 function testBatchWritesSummaryIssuesAndSurvivesBadFile(tc)
     inDir = fullfile(tc.TestData.dir, 'batch_in'); mkdir(inDir);
     outDir = fullfile(tc.TestData.dir, 'batch_out');
@@ -125,6 +136,7 @@ function testBatchWritesSummaryIssuesAndSurvivesBadFile(tc)
     verifyFalse(tc, isfile(fullfile(outDir, 'sub012_broken.csv')));
 end
 
+% Batch: the default output folder is <input>/csv, and an empty folder must not crash.
 function testBatchDefaultOutFolderAndEmptyFolder(tc)
     inDir = fullfile(tc.TestData.dir, 'default_out'); mkdir(inDir);
     copyfile(makeTrk(tc, 'sub020_x.trk', fullStructure(1, 1)), inDir);

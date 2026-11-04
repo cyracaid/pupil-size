@@ -1,5 +1,8 @@
 function [summary, issues] = checkTrk(participant, file, S, opts)
 %CHECKTRK Record, never repair: compare a parsed log with what the task should have produced.
+% EN: Compare a parsed log with what the task should have produced. Record, never repair.
+% KO: 파싱한 로그를 과제가 만들어야 할 것과 비교한다. 기록만 하고 고치지 않는다.
+% ZH: 把解析后的日志与任务应有的样子对比；只记录，不修补。
 %   Severity "warn" = the file deviates from expectation; "info" = a fact worth knowing.
     issues = emptyIssues();
     function add(sev, code, msg)
@@ -21,6 +24,9 @@ function [summary, issues] = checkTrk(participant, file, S, opts)
     sm.n_CueStart = cnt('CueStart'); sm.n_CueFinish = cnt('CueFinish');
     sm.n_StimuliStart = cnt('StimuliStart'); sm.n_RatingStart = cnt('RatingStart');
     sm.n_BurnOutStart = cnt('BurnOutStart');
+    % Everything above is bookkeeping: counts and fractions go into the summary row.
+    % Every check below only appends a row to `issues` - the samples and events are
+    % never edited, so a "warn" changes nothing about the data that is written out.
 
     % --- file level -----------------------------------------------------------------
     if S.malformed.n > 0
@@ -30,6 +36,8 @@ function [summary, issues] = checkTrk(participant, file, S, opts)
     if ~S.header.has_stop_line
         add('warn', 'NO_STOP_LINE', 'The log has no "stop timecounter" line; it may be truncated.');
     end
+    % Sample-level sanity: time must run forward, and long gaps are worth knowing
+    % about even when they are genuine (the eye tracker drops out, not the task).
     dt = diff(tm);
     if any(dt <= 0)
         j = find(dt <= 0, 1, 'first') + 1;
@@ -42,6 +50,8 @@ function [summary, issues] = checkTrk(participant, file, S, opts)
         add('warn', 'TIME_GAP', sprintf('%d gap(s) longer than %g ms between samples (longest %.0f ms, first at t=%.1f s).', ...
             numel(gaps), opts.MaxGapMs, max(dt), (tm(gaps(1)) - tm(1)) / 1000));
     end
+    % Pupil / gaze coverage. Both thresholds are reporting only: no sample is dropped
+    % here, they only decide whether the participant gets a LOW_PUPIL_VALID or NO_GAZE row.
     if sm.pupil_valid_fraction < opts.MinValidFraction
         add('warn', 'LOW_PUPIL_VALID', sprintf('Only %.1f%% of samples have pupil data (reporting threshold %.0f%%; nothing was dropped).', ...
             100 * sm.pupil_valid_fraction, 100 * opts.MinValidFraction));
@@ -54,6 +64,9 @@ function [summary, issues] = checkTrk(participant, file, S, opts)
     if isempty(evT)
         add('warn', 'NO_EVENTS', 'The log has no SoftwareEvent lines; run, trial, phase and event cannot be filled.');
     else
+        % Event-level checks: the counts have to match what the task should have produced.
+        % A missing START does not stop anything, it just means run numbers read from
+        % START will be one lower than the BurnInStart order (reported, not corrected).
         if sm.n_START ~= opts.ExpectedRuns
             add('warn', 'START_COUNT', sprintf('%d START event(s), expected %d (one per run).', sm.n_START, opts.ExpectedRuns));
         end
@@ -84,6 +97,8 @@ function [summary, issues] = checkTrk(participant, file, S, opts)
         if ~isempty(unk)
             add('info', 'UNKNOWN_EVENTS', ['Event name(s) not in the known list: ' strjoin(unk', ', ')]);
         end
+        % Durations: pair each start with the first end that comes before the next start
+        % (pairDur below). cue = CueStart->CueFinish, cd = CueStart->StimuliStart.
         cue = pairDur(evT(strcmp(evN, 'CueStart')), evT(strcmp(evN, 'CueFinish')));
         cd  = pairDur(evT(strcmp(evN, 'CueStart')), evT(strcmp(evN, 'StimuliStart')));
         if any(~isnan(cue))

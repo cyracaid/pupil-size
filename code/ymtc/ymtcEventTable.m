@@ -1,5 +1,8 @@
 function T = ymtcEventTable(subId, options)
 %YMTCEVENTTABLE One subject -> one CSV of event markers in YMTC order.
+% EN: Build one subject's YMTC marker table: Onset > countdown > Outcome > WhiteNoise > Rating.
+% KO: 한 피험자의 YMTC 마커 표를 만든다: Onset > 카운트다운 > Outcome > WhiteNoise > Rating.
+% ZH: 生成单个被试的 YMTC marker 表：Onset → 倒计时 → Outcome → WhiteNoise → Rating。
 %
 %   T = ymtcEventTable('sub149');
 %   T = ymtcEventTable('sub149', 'Order', 4);   % force the trial order

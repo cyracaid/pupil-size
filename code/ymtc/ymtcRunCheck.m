@@ -1,5 +1,8 @@
 function S = ymtcRunCheck(options)
 %YMTCRUNCHECK Is each run really 21 trials? Run-level marker inventory.
+% EN: Check that every run really has 21 trials, counted from BurnInStart.
+% KO: 모든 run 이 정말 21 trial 인지 BurnInStart 기준으로 확인한다.
+% ZH: 用 BurnInStart 做分界，核对每个 run 是否真的 21 个 trial。
 %
 %   S = ymtcRunCheck;                          % the 9 participants
 %   S = ymtcRunCheck('Subjects', "sub134");    % one

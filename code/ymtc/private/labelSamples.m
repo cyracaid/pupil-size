@@ -1,5 +1,8 @@
 function L = labelSamples(tm, evT, evN)
 %LABELSAMPLES Attach events to samples and fill run / trial / phase forward from the events.
+% EN: Attach events to samples, and carry run / trial / phase forward from them.
+% KO: 이벤트를 샘플에 붙이고 run / trial / phase 를 앞으로 이어 간다.
+% ZH: 把事件挂到样本上，并据此向后填充 run / trial / phase。
 %   Each event goes on the first sample with time >= event time. Several events on the same
 %   sample are joined with ';'. Nothing is inferred: run counts START events only, so samples
 %   before the first START (or in a run whose START is missing) keep the previous run number

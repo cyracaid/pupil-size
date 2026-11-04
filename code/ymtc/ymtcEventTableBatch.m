@@ -1,5 +1,8 @@
 function S = ymtcEventTableBatch(options)
 %YMTCEVENTTABLEBATCH All subjects -> one event table each, plus a summary.
+% EN: Run ymtcEventTable over all subjects, and write a summary and a combined table.
+% KO: 모든 피험자에 대해 ymtcEventTable 을 실행하고 요약표와 통합표를 쓴다.
+% ZH: 对所有被试循环调用 ymtcEventTable，写出汇总表和合并表。
 %
 %   S = ymtcEventTableBatch;                        % the 9 participants we have
 %   S = ymtcEventTableBatch('Subjects', "sub149");  % just one
