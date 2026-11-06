@@ -16,10 +16,13 @@ function T = ymtcEventTable(subId, options)
 %         (no WhiteNoise_part2-4 rows, 4-5 rows per trial).
 %         Columns: participant, order, run, trial, trial_in_run, ymtc_marker, trk_event,
 %         time_ms, t_from_onset_s, expected_from_onset_s, diff_s, expected_duration_s,
-%         condition, timing, certainty, outcome, step
+%         condition, timing, certainty, outcome, actual_outcome, step
 %           condition  PTCT / PTCS / PTUO / UTCT / UTCS / UTUO   (read off Onset<cond>)
 %           timing     P / U        certainty  C / U
 %           outcome    T / S / O    (O = the order's name does not say, the Outcome does)
+%           actual_outcome  T / S, what the trial really ended in. Equal to `outcome` for
+%                      certain trials; for the uncertain ones (UO) it is the last letter of
+%                      the Outcome marker name (OutcomeUTUOT -> T, OutcomeUTUOS -> S).
 %           step       1 Onset, 2 countdown, 3 Outcome, 4 WhiteNoise, 5 Rating
 %
 % How the trk markers line up with the task markers (one trial):
@@ -38,12 +41,11 @@ arguments
     options.NoiseParts (1,1) logical = true   % false = drop WhiteNoise_part2-4 rows
 end
 
-%% 1. Paths
-here     = fileparts(mfilename('fullpath'));   % 代码_matlab/
-root     = fileparts(here);                    % pupil folder
-evFile   = fullfile(root, '03_事件时间线', subId + "_events.csv");
-orderDir = fullfile(root, 'TrialOrder-HK');
-outDir   = fullfile(root, '05_事件对照表');
+%% 1. Paths (no absolute path here; see ymtcConfig.m / ymtc_config.m)
+C        = ymtcConfig();
+evFile   = fullfile(C.eventDir, subId + "_events.csv");
+orderDir = C.orderDir;
+outDir   = C.outDir;
 if ~isfolder(outDir), mkdir(outDir); end
 
 %% 2. Read the trk markers (already time ordered in the file)
@@ -92,7 +94,7 @@ for i = 1:height(E)
     if any(ev == ["START" "BurnInStart" "BurnOutStart"])
         % run-level markers: no trial, no condition
         rows(end+1, :) = {subId, order, NaN, NaN, NaN, ev, ev, E.time_ms(i), ...
-                          NaN, NaN, NaN, NaN, "", "", "", "", NaN}; %#ok<AGROW>
+                          NaN, NaN, NaN, NaN, "", "", "", "", "", NaN}; %#ok<AGROW>
         continue
     end
 
@@ -111,6 +113,12 @@ for i = 1:height(E)
     timing    = string(cl(1));  % P / U  (predictable vs unpredictable time)
     certainty = string(cl(3));  % C / U  (certain vs uncertain outcome)
     outcome   = string(cl(4));  % T / S / O  (O = threat or safe is decided at the outcome)
+    % what the trial really ended in: for UO trials read the last letter of the Outcome marker name
+    actual = outcome;
+    if outcome == "O"
+        outName = char(tr.names(3));          % e.g. 'OutcomeUTUOT'
+        actual  = string(outName(end));       % T or S
+    end
 
     % trk markers that belong to this trial: from this CueStart to the next one
     if trial < numel(cueIdx), lastRow = cueIdx(trial+1) - 1; else, lastRow = height(E); end
@@ -123,14 +131,14 @@ for i = 1:height(E)
         rows(end+1, :) = {subId, order, run, trial, k, tr.names(m), trkNames(m), tms, ...
             (tms - cueTime)/1000, tr.onset(m) - tr.onset(1), ...
             (tms - cueTime)/1000 - (tr.onset(m) - tr.onset(1)), tr.dur(m), ...
-            cond, timing, certainty, outcome, m}; %#ok<AGROW>
+            cond, timing, certainty, outcome, actual, m}; %#ok<AGROW>
         if m == 4 && options.NoiseParts            % extra white-noise parts 2-4
             for p = 2:4
                 j = find(block.event == "WhitenoiseStart" + p, 1);
                 if isempty(j), tms = NaN; else, tms = block.time_ms(j); end
                 rows(end+1, :) = {subId, order, run, trial, k, "WhiteNoise_part" + p, ...
                     "WhitenoiseStart" + p, tms, (tms - cueTime)/1000, NaN, NaN, NaN, ...
-                    cond, timing, certainty, outcome, 4}; %#ok<AGROW>
+                    cond, timing, certainty, outcome, actual, 4}; %#ok<AGROW>
             end
         end
     end
@@ -148,7 +156,7 @@ end
 %% 6. Table + CSV
 T = cell2table(rows, 'VariableNames', {'participant', 'order', 'run', 'trial', 'trial_in_run', ...
     'ymtc_marker', 'trk_event', 'time_ms', 't_from_onset_s', 'expected_from_onset_s', ...
-    'diff_s', 'expected_duration_s', 'condition', 'timing', 'certainty', 'outcome', 'step'});
+    'diff_s', 'expected_duration_s', 'condition', 'timing', 'certainty', 'outcome', 'actual_outcome', 'step'});
 % The noise-free version gets its own name, so the two never overwrite
 % each other: <sub>_event_table.csv vs <sub>_event_table_5step.csv.
 if options.NoiseParts

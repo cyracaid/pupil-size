@@ -87,16 +87,26 @@ S = ymtcEventTableBatch('NoiseParts', false);       % 5-step version, *_5step.cs
 R = ymtcRunCheck;
 ```
 
-## Folder layout expected by the `ymtc*` functions
+## Paths: nothing absolute lives in this repository
 
-`trk2csv` is standalone; the `ymtc*` functions assume this project layout next to the
-folder that contains these files:
+`trk2csv` is standalone and only touches the file or folder you hand it. The `ymtc*`
+functions ask `ymtcConfig.m` where the project folders are; its defaults are resolved
+relative to that file, so a clone runs as-is when the layout below is present.
 
-```
-03_事件时间线/<sub>_events.csv              participant,time_ms,event  (one row per event)
-TrialOrder-HK/TrialOrder<order>Run<run>.xlsx  names / onsets / durations of every marker
-05_事件对照表/                               output folder, created if missing
-00_数据检查报告/                             ymtcRunCheck output
+If your data live somewhere else, copy `ymtc_config.template.m` to `ymtc_config.m`,
+edit the fields, and `ymtcConfig` applies it on top of the defaults. `ymtc_config.m`
+is git-ignored, so machine paths never enter the repository.
+
+| field | default | holds |
+|---|---|---|
+| `eventDir` | `03_事件时间线/` | `<sub>_events.csv`, `participant,time_ms,event` (one row per event) |
+| `orderDir` | `TrialOrder-HK/` | `TrialOrder<order>Run<run>.xlsx`, names / onsets / durations |
+| `outDir` | `05_事件对照表/` | output folder, created if missing |
+| `qcDir` | `00_数据检查报告/` | `ymtcRunCheck` output |
+
+```matlab
+C = ymtcConfig()                       % see what is being used
+edit ymtc_config.template.m            % then save it as ymtc_config.m
 ```
 
 ## Conventions worth knowing

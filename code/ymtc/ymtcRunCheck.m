@@ -26,10 +26,9 @@ arguments
     options.TrialsPerRun (1,1) double = 21
 end
 
-here   = fileparts(mfilename('fullpath'));   % 代码_matlab/
-root   = fileparts(here);                    % pupil folder
-evDir  = fullfile(root, '03_事件时间线');
-outDir = fullfile(root, '00_数据检查报告');
+C      = ymtcConfig();                       % paths; override in ymtc_config.m
+evDir  = C.eventDir;
+outDir = C.qcDir;
 if ~isfolder(outDir), mkdir(outDir); end
 
 rows = {};

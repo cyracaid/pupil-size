@@ -5,7 +5,7 @@ function [T, report] = trk2csv(trkFile, options)
 % ZH: 把单个 MRC .trk 日志转成一个 csv；异常只记录，不修补。
 %
 %   T = trk2csv('sub119_YMTC_..._0001.trk');
-%   [T, report] = trk2csv(trkFile, 'OutFolder', 'D:\ymtc\csv', 'CueDurationSec', 1.0);
+%   [T, report] = trk2csv(trkFile, 'OutFolder', 'out', 'CueDurationSec', 1.0);   % 'out' = a folder of your choice
 %
 % One row per eye-tracker sample. Task events (SoftwareEvent lines) are not written as
 % rows of their own: each event is attached to the first sample whose timestamp is >= the

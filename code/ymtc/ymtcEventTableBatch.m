@@ -34,10 +34,9 @@ arguments
     options.WriteCombined (1,1) logical = true
 end
 
-here   = fileparts(mfilename('fullpath'));   % 代码_matlab/
-root   = fileparts(here);                    % pupil folder
-evDir  = fullfile(root, '03_事件时间线');
-outDir = fullfile(root, '05_事件对照表');
+C      = ymtcConfig();                       % paths; override in ymtc_config.m
+evDir  = C.eventDir;
+outDir = C.outDir;
 if ~isfolder(outDir), mkdir(outDir); end
 
 summary = {};      % one row per subject, written as event_table_summary.csv

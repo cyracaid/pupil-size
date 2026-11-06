@@ -4,7 +4,7 @@ function results = trk2csv_batch(inFolder, options)
 % KO: 폴더 안의 모든 .trk 를 변환하고 QC 요약표와 이상치 표를 함께 쓴다.
 % ZH: 转换整个文件夹的 .trk，并写出 QC 汇总表和异常表。
 %
-%   results = trk2csv_batch('D:\ymtc\raw');                         % csv go to D:\ymtc\raw\csv
+%   results = trk2csv_batch('raw');          % csv go to raw/csv, next to the .trk files
 %   results = trk2csv_batch(inFolder, 'OutFolder', outFolder, ...
 %                           'Parameters', {'CueDurationSec', 1.0});  % options passed on to trk2csv
 %
