@@ -1,5 +1,8 @@
 function plotSegments(hAxs,segmentData)
 % plotSegments Visualizes segments as patches.
+% EN: Draws one segment as a patch; used by the visual check that filter tuning relies on.
+% KO: 한 구간을 패치로 그린다. 필터 조정에 쓰는 시각 확인용.
+% ZH: 把一段画成色块；调滤波参数时的目视检查用它。
 %
 %   This is an internal helper script, and is not intended to be called by
 %   users.

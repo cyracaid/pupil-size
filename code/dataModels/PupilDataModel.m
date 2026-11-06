@@ -1,5 +1,8 @@
 classdef PupilDataModel < handle
     %PupilDataModel Data model for holding pupil diameter data.
+% EN: Orchestrates one recording end to end: read, filter, interpolate, segment, export.
+% KO: 한 기록을 읽기, 필터, 보간, 구간 분할, 내보내기까지 끝까지 처리한다.
+% ZH: 一条记录的完整流程：读取、滤波、插值、分段、导出。
     %
     %   The PupilDataModel is the main class that the users should interact
     %   with, the standard usage pipeline consists of the following steps:

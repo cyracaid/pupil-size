@@ -1,6 +1,9 @@
 function [valOut,speedFiltData,devFiltData] ...
     = rawDataFilter(t_ms,diaSamples,rawFiltSettings)
 % rawDataFilter Filter the raw data by identifying a subset as 'valid'.
+% EN: Decides which raw samples are valid: range, blink speed, trend deviation, isolated islands.
+% KO: 어떤 원시 샘플이 유효한지 결정한다: 범위, 속도, 추세 편차, 고립 샘플.
+% ZH: 决定哪些原始样本有效：范围、速度、趋势偏差、孤立样本。
 %
 %   [valOut,speedFiltData,devFiltData] = rawDataFilter(t_ms,diaSamples...
 %                                        ,rawFiltSettings);

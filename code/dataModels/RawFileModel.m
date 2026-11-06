@@ -1,5 +1,8 @@
 classdef RawFileModel < handle
     % RawFileModel Class for managing the required raw file structure.
+% EN: Reads one recording into the structure the data models expect.
+% KO: 한 기록을 데이터 모델이 기대하는 구조로 읽어 들인다.
+% ZH: 把一条记录读成数据模型期望的结构。
     %
     %   Use the constructor to create an instance, and initialize its
     %   properties:

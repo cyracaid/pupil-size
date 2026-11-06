@@ -1,5 +1,8 @@
 classdef ValidSamplesModel < handle
     %ValidSamplesModel Data model for processing valid samples.
+% EN: Holds the smoothed signal and computes the per-segment statistics.
+% KO: 평활화된 신호를 보관하고 구간별 통계를 계산한다.
+% ZH: 保存平滑信号，并计算每个段的统计量。
     %
     %   obj = ValidSamplesModel(eye,hPupilDataModel,samples...
     %         ,validFraction);

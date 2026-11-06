@@ -1,5 +1,8 @@
 classdef RawSamplesModel < handle
     %PupilDataModel Data model for holding raw pupil diameter data.
+% EN: Holds the raw samples and the validity flag produced by the artifact filters.
+% KO: 원시 샘플과 아티팩트 필터가 만든 유효 플래그를 보관한다.
+% ZH: 保存原始样本，以及伪影滤波给出的有效标记。
     %
     % obj = RawSamplesModel(eye,hPupilDataModel)
     %
