@@ -11,7 +11,7 @@ ZH: 从这里开始。`01` 一页看懂流水线，`02` 列字典，`03` 瞳孔�
 | [`01_pipeline_overview.md`](01_pipeline_overview.md) / [`zh/01_流程总览.md`](zh/01_流程总览.md) | the five layers and what flows between them | **done** |
 | [`03_pupil_size_internals.md`](03_pupil_size_internals.md) / [`zh/03_瞳孔算法.md`](zh/03_瞳孔算法.md) | the three artifact filters, interpolation, 4 Hz low-pass, segmentation | **done** |
 | `04_our_code.md` | our files, call chain, reading order | planned (see `code/ymtc/README.md` for now) |
-| `05_data_quality.md` | missing-data structure, rejection rules, threshold sensitivity | planned |
+| [`05_data_quality.md`](05_data_quality.md) / [`zh/05_数据质量.md`](zh/05_数据质量.md) | missing-data structure, rejection rules, threshold sensitivity | **done** |
 | [`06_faq.md`](06_faq.md) / [`zh/06_常见问题.md`](zh/06_常见问题.md) | the traps that bite most often | **done** |
 
 ## How to look something up
