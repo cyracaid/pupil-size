@@ -8,11 +8,11 @@ ZH: 从这里开始。`01` 一页看懂流水线，`02` 列字典，`03` 瞳孔�
 |---|---|---|
 | [`02_column_dictionary.md`](02_column_dictionary.md) | every column of every output table: meaning, formula, unit, source | **done** |
 | [`zh/02_列字典.md`](zh/02_列字典.md) | 同上，中文全文 | **done** |
-| `01_pipeline_overview.md` | the five layers and what flows between them | planned |
-| `03_pupil_size_internals.md` | the three artifact filters, interpolation, 4 Hz low-pass, segmentation | planned |
+| [`01_pipeline_overview.md`](01_pipeline_overview.md) / [`zh/01_流程总览.md`](zh/01_流程总览.md) | the five layers and what flows between them | **done** |
+| [`03_pupil_size_internals.md`](03_pupil_size_internals.md) / [`zh/03_瞳孔算法.md`](zh/03_瞳孔算法.md) | the three artifact filters, interpolation, 4 Hz low-pass, segmentation | **done** |
 | `04_our_code.md` | our files, call chain, reading order | planned (see `code/ymtc/README.md` for now) |
 | `05_data_quality.md` | missing-data structure, rejection rules, threshold sensitivity | planned |
-| `06_faq.md` | the three traps that bite most often | planned |
+| [`06_faq.md`](06_faq.md) / [`zh/06_常见问题.md`](zh/06_常见问题.md) | the traps that bite most often | **done** |
 
 ## How to look something up
 

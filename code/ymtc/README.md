@@ -63,6 +63,7 @@ ymtcRunCheck.m         is every run really 21 trials? (uses BurnInStart, not STA
 ymtcTimingCheck.m      per subject and marker: n / mean / SD / min / max of diff_s
 ymtcTrialWide.m        long table -> one row per trial, one column per marker
 ymtcConfig.m           where the folders are (no path is hard-coded)
+checkDocs.m            compares docs/02 with the real table headers
 ```
 
 ## Use
