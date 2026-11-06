@@ -11,6 +11,38 @@ join with pupil data:
 
 Requires MATLAB R2019b or newer. **No toolboxes** are needed for anything in this folder.
 
+## Code map and reading order
+
+Two layers, and two entry points per layer:
+
+```
+trk2csv.m                    entry: one .trk
+  +- private/readTrk.m       parse the text into header / samples / events
+  +- private/labelSamples.m  attach events to samples, carry run / trial / phase forward
+  +- private/checkTrk.m      compare with what the task should have produced (record only)
+trk2csv_batch.m              loop over a folder, collect qc summary and issues
+
+ymtcEventTable.m             entry: one subject's marker table
+  +- reads 03_事件时间线/<sub>_events.csv
+  +- readOrder() (subfunction at the end of the file) reads TrialOrder-HK/*.xlsx
+  +- picks the trial order by matching countdown lengths, then writes the table in marker order
+ymtcEventTableBatch.m        loop over subjects, plus a summary and a combined table
+ymtcRunCheck.m               standalone check: 21 trials per run, counted from BurnInStart
+```
+
+Suggested reading order if you want the fast path:
+
+1. `ymtcEventTable.m` (176 lines) - the one people ask about: how markers line up, where
+   the condition comes from, what `diff_s` is, why `run = ceil(trial/21)` holds.
+2. Follow the call chain `trk2csv.m` (84) -> `private/readTrk.m` (76) ->
+   `private/labelSamples.m` (43) -> `private/checkTrk.m` (134). After that you know how one
+   csv row is produced.
+3. `ymtcEventTableBatch.m` (123) and `ymtcRunCheck.m` (118) are wrappers; skim the structure.
+4. The pupil-metric layer (not in this folder) lives in `code/dataModels` of this repository.
+
+Every `.m` opens with a three-line purpose header (EN / KO / ZH) - scan those three lines
+first, then decide whether the body is worth reading.
+
 ## Files
 
 ```
