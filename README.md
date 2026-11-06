@@ -41,3 +41,7 @@ The /code/Examples/ folder contains two example applications:
 * Dataset 1: Processing monocular pupil size data collected using SR-Research's Eyelink system.
 * Dataset 2: Processing binocular pupil size data collected using E-Prime Extensions for Tobii.
 
+
+## Documentation:
+`docs/` holds the column dictionary (every output column: meaning, formula, unit, source)
+and the pipeline notes for this fork; see [docs/README.md](docs/README.md).

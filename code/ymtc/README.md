@@ -28,17 +28,22 @@ ymtcEventTable.m             entry: one subject's marker table
   +- picks the trial order by matching countdown lengths, then writes the table in marker order
 ymtcEventTableBatch.m        loop over subjects, plus a summary and a combined table
 ymtcRunCheck.m               standalone check: 21 trials per run, counted from BurnInStart
+
+ymtcTimingCheck.m            reads the marker table, reports diff_s per subject and marker
+ymtcTrialWide.m              reads the marker table, writes one row per trial
 ```
 
 Suggested reading order if you want the fast path:
 
-1. `ymtcEventTable.m` (176 lines) - the one people ask about: how markers line up, where
+1. `ymtcEventTable.m` (184 lines) - the one people ask about: how markers line up, where
    the condition comes from, what `diff_s` is, why `run = ceil(trial/21)` holds.
 2. Follow the call chain `trk2csv.m` (84) -> `private/readTrk.m` (76) ->
    `private/labelSamples.m` (43) -> `private/checkTrk.m` (134). After that you know how one
    csv row is produced.
-3. `ymtcEventTableBatch.m` (123) and `ymtcRunCheck.m` (118) are wrappers; skim the structure.
-4. The pupil-metric layer (not in this folder) lives in `code/dataModels` of this repository.
+3. `ymtcEventTableBatch.m` (122) and `ymtcRunCheck.m` (117) are wrappers; skim the structure.
+4. `ymtcTimingCheck.m` (~90) and `ymtcTrialWide.m` (~70) consume the table the wrappers
+   produce; both are read-only until the last line, so they are safe to try.
+5. The pupil-metric layer (not in this folder) lives in `code/dataModels` of this repository.
 
 Every `.m` opens with a three-line purpose header (EN / KO / ZH) - scan those three lines
 first, then decide whether the body is worth reading.
@@ -54,6 +59,10 @@ tests/                 simulated .trk files, runtests('tests')
 ymtcEventTable.m       one subject -> 05_事件对照表/<sub>_event_table.csv
 ymtcEventTableBatch.m  every subject in one go, plus a summary and a combined table
 ymtcRunCheck.m         is every run really 21 trials? (uses BurnInStart, not START)
+
+ymtcTimingCheck.m      per subject and marker: n / mean / SD / min / max of diff_s
+ymtcTrialWide.m        long table -> one row per trial, one column per marker
+ymtcConfig.m           where the folders are (no path is hard-coded)
 ```
 
 ## Use
@@ -86,6 +95,18 @@ S = ymtcEventTableBatch;
 S = ymtcEventTableBatch('NoiseParts', false);       % 5-step version, *_5step.csv
 R = ymtcRunCheck;
 ```
+
+Two derived tables, both read the marker table and write one file each:
+
+```matlab
+T = ymtcTimingCheck;    % -> timing_check.csv: diff_s per subject and marker
+W = ymtcTrialWide;      % -> all_subjects_trials_wide.csv: one row per trial
+```
+
+`ymtcTimingCheck` reports `diff_s = measured - designed` for the five markers, so a
+systematic offset (for example a cue that runs short) shows up as a consistent sign;
+`ymtcTrialWide` turns the long table into one row per trial with `onset_s`,
+`countdown_s`, `outcome_s`, `whitenoise_s`, `rating_s` and `has_rating`.
 
 ## Paths: nothing absolute lives in this repository
 
