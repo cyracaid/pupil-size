@@ -9,18 +9,18 @@ Applies to: `code/ymtc@e574fce` + `pupil-size@645cbc6`. If a table gains a colum
 The tables, and how they relate:
 
 ```
-.trk ──trk2csv──> 02_逐样本csv/*.csv ──csv2kretmat + example_kret_pipeline──> 04_Kret流水线输出/
-                        │                                                       kret_results.csv (16 cols)
-                        └──ymtcEventTable──> 05_事件对照表/*_event_table.csv (18 cols)
+.trk ──trk2csv──> 02_样本/*.csv ──csv2kretmat + example_kret_pipeline──> 04_瞳孔指标/
+                        │                                                       04_all_segments.csv (16 cols)
+                        └──ymtcEventTable──> 05_marker表/*_event_table.csv (18 cols)
                                                     │
-                                                    ├── ymtcTrialWide ──> all_subjects_trials_wide.csv (14 cols)
-                                                    ├── ymtcTimingCheck ─> timing_check.csv (7 cols)
-                                                    └── ymtcMergeResults ─> 06_最终结果/all_subjects_final.csv (69 cols)
+                                                    ├── ymtcTrialWide ──> 05_all_trials_wide.csv (14 cols)
+                                                    ├── ymtcTimingCheck ─> 05_all_timing_check.csv (7 cols)
+                                                    └── ymtcMergeResults ─> 06_合并表/06_all_merged.csv (69 cols)
 ```
 
 ---
 
-## A. Event table — `<sub>_event_table.csv` / `all_subjects_event_table_5step.csv` (18 columns)
+## A. Event table — `<sub>_markers.csv` / `05_all_markers_5step.csv` (18 columns)
 
 One row per marker. In the 5-step version each trial has 4–5 rows; the full version adds
 `WhiteNoise_part2-4`.
@@ -95,12 +95,12 @@ Three traps, in order of how often they bite:
 
 | column | table | meaning | rule |
 |---|---|---|---|
-| `RejectCountdown` | `trials_qc.csv`, final | trial is rejected | `countdown_SmoothSig_missingDataPercent > 50` |
+| `RejectCountdown` | `04_all_trials_qc.csv`, final | trial is rejected | `countdown_SmoothSig_missingDataPercent > 50` |
 | `PreOutcomeMostlyMissing` | same | flag only, the trial is kept | `preOutcome_SmoothSig_missingDataPercent > 50` |
 | `SubjectExcluded` | same | the whole subject is excluded | more than 20% of the subject's trials rejected |
-| `nTrials` / `nRejected` / `rejectPct` | `subjects_qc.csv` | per-subject counts and rate | from the three rules above |
+| `nTrials` / `nRejected` / `rejectPct` | `04_all_subjects_qc.csv` | per-subject counts and rate | from the three rules above |
 
-## D. `kret_results.csv` (16 columns)
+## D. `04_all_segments.csv` (16 columns)
 
 One row per subject × trial × segment (4 per trial). Columns 1–6 are the segment's identity,
 7–16 are the statistics from §B.
@@ -113,7 +113,7 @@ One row per subject × trial × segment (4 per trial). Columns 1–6 are the seg
 | `participant` / `trial` | subject id, trial 1–84 |
 | the ten `leftPupil_*` columns | §B, unprefixed |
 
-## E. `all_subjects_trials_wide.csv` (14 columns)
+## E. `05_all_trials_wide.csv` (14 columns)
 
 One row per trial; the long event table collapsed to one line per trial.
 
@@ -128,7 +128,7 @@ One row per trial; the long event table collapsed to one line per trial.
 | `rating_s` | rating onset; `NaN` when the trial has no rating | s |
 | `has_rating` | whether this trial has a rating (24 of 84) | logical |
 
-## F. `timing_check.csv` (7 columns)
+## F. `05_all_timing_check.csv` (7 columns)
 
 One row per subject × marker; the descriptive answer to "is the task on schedule?".
 
@@ -140,7 +140,7 @@ One row per subject × marker; the descriptive answer to "is the task on schedul
 | `mean_s` / `sd_s` | mean and SD of `diff_s` |
 | `min_s` / `max_s` | extremes of `diff_s` |
 
-## G. `run_check.csv` (9 columns)
+## G. `07_all_run_check.csv` (9 columns)
 
 One row per subject; guards the `run = ceil(trial/21)` assumption.
 
@@ -152,7 +152,7 @@ One row per subject; guards the `run = ceil(trial/21)` assumption.
 | `runAssignmentOK` | true when every run has 21 trials and the counts agree |
 | `note` | what is wrong, in plain words |
 
-## H. The merged final table — `06_最终结果/all_subjects_final.csv` (69 columns)
+## H. The merged final table — `06_合并表/06_all_merged.csv` (69 columns)
 
 One row per marker, carrying the pupil statistics of all four segments on the same row:
 

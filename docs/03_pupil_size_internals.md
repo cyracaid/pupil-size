@@ -11,7 +11,7 @@ The whole thing is four stages, in this order:
 ```
 raw samples ──(1) validate──> valid mask ──(2) filter──> smoother mask
             ──(3) interpolate + low-pass──> 1000 Hz smooth signal
-            ──(4) segment + summarise──> kret_results.csv
+            ──(4) segment + summarise──> 04_all_segments.csv
 ```
 
 ## Stage 1–2 · What counts as a valid sample

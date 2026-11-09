@@ -10,18 +10,18 @@ function S = ymtcEventTableBatch(options)
 %   S = ymtcEventTableBatch('NoiseParts', false);   % 5 rows per trial, own file names
 %
 % This is only a loop around ymtcEventTable.m; the per-subject rules are there.
-% For every subject the single input is 03_事件时间线/<sub>_events.csv:
+% For every subject the single input is 03_事件/<sub>_events.csv:
 %   file missing      -> status "skipped_no_file",   nothing is attempted
 %   no CueStart rows  -> status "skipped_no_events", the trk has no trial markers
 %   function fails    -> status "error",             the batch keeps going
-%   otherwise         -> status "ok" and 05_事件对照表/<sub>_event_table.csv
+%   otherwise         -> status "ok" and 05_marker表/05_<sub>_markers.csv
 %
-% Output (in 05_事件对照表/):
-%   <sub>_event_table.csv           from ymtcEventTable.m, one per subject that ran
-%   all_subjects_event_table.csv    the same rows stacked, all subjects
-%   event_table_summary.csv         one row per subject: status, chosen order,
+% Output (in 05_marker表/):
+%   05_<sub>_markers.csv            from ymtcEventTable.m, one per subject that ran
+%   05_all_markers.csv              the same rows stacked, all subjects
+%   05_all_markers_summary.csv      one row per subject: status, chosen order,
 %                                   rows, trials, note
-%   With 'NoiseParts', false the two tables are named *_5step.csv instead,
+%   With 'NoiseParts', false the two tables are named 05_all_markers_5step.csv / *_5step.csv,
 %   and the summary is the same (the subjects and orders do not change).
 % Nothing is repaired, imputed, or dropped silently: every subject ends up as
 % one row of the summary, so a skipped participant is visible, not forgotten.
@@ -39,7 +39,7 @@ evDir  = C.eventDir;
 outDir = C.outDir;
 if ~isfolder(outDir), mkdir(outDir); end
 
-summary = {};      % one row per subject, written as event_table_summary.csv
+summary = {};      % one row per subject, written as 05_all_markers_summary.csv
 parts   = {};      % event tables of the subjects that ran, for the combined csv
 
 for s = options.Subjects
@@ -49,7 +49,7 @@ for s = options.Subjects
     if ~isfile(evFile)
         fprintf('[skip] %s: %s not found\n', s, evFile);
         summary(end+1, :) = {s, "skipped_no_file", NaN, 0, 0, ...
-                             "no 03_事件时间线 csv"}; %#ok<AGROW>
+                             "no 03_事件 csv"}; %#ok<AGROW>
         continue
     end
 
@@ -98,16 +98,16 @@ S = cell2table(summary, 'VariableNames', ...
 S.participant = string(S.participant);
 S.status      = string(S.status);
 S.note        = string(S.note);
-writetable(S, fullfile(outDir, 'event_table_summary.csv'));
+writetable(S, fullfile(outDir, '05_all_markers_summary.csv'));
 
 %% 6. All rows in one table (optional but handy for the next step)
 if options.WriteCombined && ~isempty(parts)
     allT = vertcat(parts{:});
     % the 5-step version goes to its own file, so the two never overwrite
     if options.NoiseParts
-        name = "all_subjects_event_table.csv";
+        name = "05_all_markers.csv";
     else
-        name = "all_subjects_event_table_5step.csv";
+        name = "05_all_markers_5step.csv";
     end
     writetable(allT, fullfile(outDir, name));
     fprintf('\ncombined: %d rows from %d subject(s) -> %s\n', ...

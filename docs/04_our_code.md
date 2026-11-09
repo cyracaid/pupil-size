@@ -29,7 +29,7 @@ files), so they are not shipped here:
 | `csv2kretmat.m` | sample CSV → Kret-format `.mat`, and defines the four segments per trial |
 | `example_kret_pipeline.m` | runs the pupil-size model: filter → interpolate → segment → statistics → QC → export |
 | `ymtcTrialQC.m` | the analysis plan's three rejection rules |
-| `ymtcMergeResults.m` | event row + four segments → `06_最终结果/all_subjects_final.csv` (69 columns) |
+| `ymtcMergeResults.m` | event row + four segments → `06_合并表/06_all_merged.csv` (69 columns) |
 | `ymtcManipulationCheck.m`, `ymtcLayer1Bins.m`, `ymtc_param_sensitivity.m` | analysis-side scripts, not part of the data pipeline |
 
 If you need them, they belong with the data, not here: they encode this study's folder

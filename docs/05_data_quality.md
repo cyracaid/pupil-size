@@ -87,7 +87,7 @@ recording (long pupil dropouts, look-aways, blinks in a dim room, one eye only).
 threshold-sensitivity result in §3 is the evidence: moving the cut-off barely moves the counts.
 
 This is also why the right response is to *report* the loss rather than tune it away:
-`subjects_qc.csv` carries `nTrials`, `nRejected`, `rejectPct`, `subjectExcluded`, and the
+`04_all_subjects_qc.csv` carries `nTrials`, `nRejected`, `rejectPct`, `subjectExcluded`, and the
 analysis should quote them.
 
 ## 6. What to report
@@ -100,4 +100,4 @@ For a methods section, four numbers suffice:
 4. the three excluded participants and why (82.1%, 100%, 92.9% rejection).
 
 Nothing above should be described as "cleaning": no trial was repaired, values were not
-imputed, and the rejected trials remain in `trials_qc.csv` with their flags.
+imputed, and the rejected trials remain in `04_all_trials_qc.csv` with their flags.

@@ -7,7 +7,7 @@ function W = ymtcTrialWide(inFile, outFile)
 % Input : the long table written by ymtcEventTable / ymtcEventTableBatch
 %         (one row per marker). The 5-step and the full version both work;
 %         noise parts and run-level rows are dropped here.
-% Output: 05_事件对照表/all_subjects_trials_wide.csv, one row per trial:
+% Output: 05_marker表/05_all_trials_wide.csv, one row per trial:
 %   participant, order, run, trial, condition, timing, certainty, outcome,
 %   onset_s, countdown_s, outcome_s, whitenoise_s, rating_s, has_rating
 %
@@ -23,10 +23,10 @@ end
 
 C = ymtcConfig();                          % paths; override in ymtc_config.m
 if inFile == ""
-    inFile = fullfile(C.outDir, 'all_subjects_event_table_5step.csv');
+    inFile = fullfile(C.outDir, '05_all_markers_5step.csv');
 end
 if outFile == ""
-    outFile = fullfile(C.outDir, 'all_subjects_trials_wide.csv');
+    outFile = fullfile(C.outDir, '05_all_trials_wide.csv');
 end
 assert(isfile(inFile), 'Input table not found: %s', inFile);
 

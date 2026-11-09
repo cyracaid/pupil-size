@@ -11,7 +11,7 @@ function S = ymtcTimingCheck(csvFile)
 % Nothing is tested, nothing is corrected. A marker without a trk time
 % (diff_s = NaN) is dropped and counted, not filled in.
 %
-% Writes 05_事件对照表/timing_check.csv, the same table that is printed.
+% Writes 05_marker表/05_all_timing_check.csv, the same table that is printed.
 
 arguments
     csvFile (1,1) string = ""
@@ -19,9 +19,9 @@ end
 
 C = ymtcConfig();                          % paths; override in ymtc_config.m
 if csvFile == ""
-    csvFile = fullfile(C.outDir, 'all_subjects_event_table_5step.csv');
+    csvFile = fullfile(C.outDir, '05_all_markers_5step.csv');
     if ~isfile(csvFile)                    % 5-step version not made yet -> full version
-        csvFile = fullfile(C.outDir, 'all_subjects_event_table.csv');
+        csvFile = fullfile(C.outDir, '05_all_markers.csv');
     end
 end
 assert(isfile(csvFile), 'Input table not found: %s', csvFile);
@@ -58,7 +58,7 @@ S = table(part, ph, ...
 S = sortrows(S, {'phase', 'participant'});
 
 disp(S)
-writetable(S, fullfile(C.outDir, 'timing_check.csv'));
+writetable(S, fullfile(C.outDir, '05_all_timing_check.csv'));
 
 %% 4. One line per phase: average of the subject means, so no subject
 %    dominates the average (everyone has 84 trials here anyway).

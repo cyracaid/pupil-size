@@ -35,7 +35,7 @@ for the rest — that is the design, not missing data. In the wide table this sh
 **Q6. Why does a file with no events still produce a CSV?**
 `trk2csv` converts whatever it is given and records `NO_EVENTS`; `run` / `trial` / `phase` /
 `event` stay empty. Three of the nine participants are like this, so they are skipped by the
-event-table step and marked `skipped_no_events` in `event_table_summary.csv`. Nothing is
+event-table step and marked `skipped_no_events` in `05_all_markers_summary.csv`. Nothing is
 invented to fill them.
 
 ---

@@ -66,8 +66,8 @@ function results = trk2csv_batch(inFolder, options)
     issues = vertcat(issueList{:});
     if isempty(summary), summary = struct2table(emptySummary('', '')); summary(1,:) = []; end
     if isempty(issues), issues = emptyIssues(); end
-    writetable(summary, fullfile(options.OutFolder, 'trk2csv_qc_summary.csv'));
-    writetable(issues, fullfile(options.OutFolder, 'trk2csv_issues.csv'));
+    writetable(summary, fullfile(options.OutFolder, '02_all_qc_summary.csv'));
+    writetable(issues, fullfile(options.OutFolder, '02_all_issues.csv'));
     results = struct('summary', summary, 'issues', issues, 'files', names);
 
     fprintf('\n%d file(s): %d ok, %d with warnings, %d failed. Summary and issues written to %s\n', ...
