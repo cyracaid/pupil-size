@@ -47,7 +47,9 @@ repository, and none is documented here beyond its one-line role:
 
 - `csv2kretmat.m`, `example_kret_pipeline.m` — the Kret adapter and batch script;
 - `ymtcTrialQC.m`, `ymtcMergeResults.m` — the analysis plan's rules and the merge;
-- `ymtcManipulationCheck.m`, `ymtcLayer1Bins.m`, `ymtc_param_sensitivity.m` — analysis-side scripts.
+- `ymtcManipulationCheck.m` — joins the rows of one trial and runs the manipulation check; it runs, its numbers are not recorded yet;
+- `ymtcFilterPlots.m` — filter diagnostics, writes PNG;
+- `ymtcLayer1Bins.m`, `ymtc_param_sensitivity.m` — analysis-side scripts.
 
 **To fill in**: which of these are finished, which feed which figure, and the order they run in.
 This page deliberately leaves that blank — a roadmap invented here would be the one part of this

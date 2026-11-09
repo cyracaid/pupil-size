@@ -138,7 +138,22 @@ for md in SOURCES:
             if want is not None and want != n:
                 fail(md, f"line {lineno}: {nm} is declared as {n} columns, TABLE_LIST says {want}")
 
-# --------------------------------------------------------------------------- 4. page set
+# --------------------------------------------------------------------------- 4. the generated reference
+# code/README.md is generated from tools/build_readme.py. It drifted twice (stale file names
+# and a paragraph that existed only on one side), so compare the two instead of trusting them.
+if hasattr(big, "build_text"):
+    try:
+        generated = big.build_text()
+    except Exception as exc:                      # a broken generator is a finding of its own
+        fail(REPO / "tools" / "build_readme.py", f"build_text() failed: {exc}")
+    else:
+        on_disk = REPO / "code" / "README.md"
+        if not on_disk.is_file():
+            fail(on_disk, "missing: run `python3 tools/build_readme.py`")
+        elif on_disk.read_text(encoding="utf-8") != generated:
+            fail(on_disk, "is stale: it is generated, run `python3 tools/build_readme.py`")
+
+# --------------------------------------------------------------------------- 5. page set
 listed = set()
 for _n, en, zh in GUIDES:
     listed.update({f"docs/{en}", f"docs/{zh}"})

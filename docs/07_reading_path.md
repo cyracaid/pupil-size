@@ -71,7 +71,9 @@ Five places, in the order they touch a number:
 | 2 | `ValidSamplesModel.analyze` | the 12 statistics per segment: `SmoothSig_{mean,min,max,missingDataPercent,sampleCount}` and `ValidSamples_{mean,min,max,validPercent,sampleCount}` + `segmentStart/End` | yes |
 | 3 | `PupilDataModel.analyzeSegments` / `exportSegments` | loops the segments and writes them out; no arithmetic of its own | yes |
 | 4 | `ymtcTrialQC.m` (data side) | the analysis plan's three rejection rules — R1/R2/R3 in [05](05_data_quality.md) | **no** |
-| 5 | the lab's statistics scripts (Fretz) | the inferential layer: the numbers that end up in a figure or a test | **no** — add the entry point here once its location is confirmed |
+| 5 | `ymtcManipulationCheck.m` (data side) | joins the rows of one trial — a segment's statistics sit on its own start-marker row — and runs the manipulation check; it runs, and the numbers it prints are not recorded here, so run it if you need them | **no** |
+| 6 | `ymtcFilterPlots.m` (data side) | not a statistic: the filter diagnostics for one recording (raw samples, what each filter rejected, the trend line), written as PNG | **no** |
+| 7 | the lab's statistics scripts (Fretz) | the inferential layer: the numbers that end up in a figure or a test | **no** — add the entry point here once its location is confirmed |
 
 Two traps that belong to the statistics, not to the filters:
 

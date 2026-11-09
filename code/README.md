@@ -43,7 +43,7 @@ Two branches leave 02 — 03 (events) and 04 (pupil metrics) — and neither dep
 | per-sample CSV | `02_samples/<name>.csv` | 1 / sample | 21 | trk2csv [ymtc] |
 | QC summary | `02_samples/02_all_qc_summary.csv` | 1 / file | 25 | trk2csv_batch [ymtc] |
 | issues | `02_samples/02_all_issues.csv` | 1 / anomaly | 5 | trk2csv_batch [ymtc] |
-| events | `03_events/<sub>_events.csv` | 1 / event | 3 | event extraction |
+| events | `03_events/<sub>_events.csv` | 1 / event | 3 | exportEvents [ymtc] |
 | event table | `05_markers/05_<sub>_markers[_5step].csv` | 1 / marker (624 · 372) | 18 | ymtcEventTable [ymtc] |
 | event summary | `05_markers/05_all_markers_summary.csv` | 1 / subject | 6 | ymtcEventTableBatch [ymtc] |
 | trials wide | `05_markers/05_all_trials_wide.csv` | 1 / trial | 14 | ymtcTrialWide [ymtc] |
@@ -74,12 +74,12 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 
 | stage | function (file:line) | decision | key settings |
 |---|---|---|---|
-| 1 range | `removeOutOfBounds` (`rawDataFilter.m:197`) | diameter outside the plausible range becomes invalid | `PupilDiameter_Min/_Max` (defaults 1.5 / 9, **millimetres**) |
-| 2 blink | `madSpeedFilter` (`229`) + `expandGaps` (`511`) | sample-to-sample speed above `median + 16 MAD`; plus 50 ms around every gap wider than 75 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
-| 3 trend | `madDeviationFilter` (`284`) | distance from a 16 Hz low-passed trend line above `median + 16 MAD`; 4 passes let wrongly rejected samples come back | `residualsFilter_passes=4`, `MadMultiplier=16` |
-| 4 islands | `removeLoners` (`440`) | islands narrower than 50 ms, separated by more than 40 ms | `islandFilter_minIslandWidth_ms=50`, `_islandSeperation_ms=40` |
-| 5 smooth | `interpAndSmooth` (`ValidSamplesModel.m:107`) | linear interpolation to 1000 Hz, then a 4th-order Butterworth at 4 Hz, zero phase (`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
-| 6 segments | `analyze` (`203`) | per-segment mean / min / max / missing% from the smooth signal **and** from the valid samples | — |
+| 1 range | `removeOutOfBounds` (`rawDataFilter.m:200`) | diameter outside the plausible range becomes invalid | `PupilDiameter_Min/_Max` (defaults 1.5 / 9, **millimetres**) |
+| 2 blink | `madSpeedFilter` (`232`) + `expandGaps` (`514`) | sample-to-sample speed above `median + 16 MAD`; plus 50 ms around every gap wider than 75 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
+| 3 trend | `madDeviationFilter` (`287`) | distance from a 16 Hz low-passed trend line above `median + 16 MAD`; 4 passes let wrongly rejected samples come back | `residualsFilter_passes=4`, `MadMultiplier=16` |
+| 4 islands | `removeLoners` (`443`) | islands narrower than 50 ms, separated by more than 40 ms | `islandFilter_minIslandWidth_ms=50`, `_islandSeperation_ms=40` |
+| 5 smooth | `interpAndSmooth` (`ValidSamplesModel.m:110`) | linear interpolation to 1000 Hz, then a 4th-order Butterworth at 4 Hz, zero phase (`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
+| 6 segments | `analyze` (`206`) | per-segment mean / min / max / missing% from the smooth signal **and** from the valid samples | — |
 
 Every threshold is `median + n*MAD`, never mean +/- SD, because a handful of large artifacts would inflate an SD enough to hide themselves. All values above are paper defaults; our pipeline changes only the range filter, since the paper's numbers are millimetres and our data are camera pixels.
 
@@ -342,7 +342,7 @@ Each table lists every column. A triangle in the last column unfolds how it is c
 </details>
 
 <details>
-<summary><b>02 · <code>trk2csv_qc_summary.csv</code> (25 columns, one row per .trk file)</b></summary>
+<summary><b>02 · <code>02_all_qc_summary.csv</code> (25 columns, one row per .trk file)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -364,7 +364,7 @@ Each table lists every column. A triangle in the last column unfolds how it is c
 </details>
 
 <details>
-<summary><b>02 · <code>trk2csv_issues.csv</code> (5 columns, one row per anomaly)</b></summary>
+<summary><b>02 · <code>02_all_issues.csv</code> (5 columns, one row per anomaly)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -408,7 +408,7 @@ Each table lists every column. A triangle in the last column unfolds how it is c
 </details>
 
 <details>
-<summary><b>05 · event table — <code><sub>_event_table.csv</code>, <code><sub>_event_table_5step.csv</code>, <code>all_subjects_event_table*.csv</code> (18 columns)</b></summary>
+<summary><b>05 · event table — <code>05_<sub>_markers.csv</code>, <code>05_<sub>_markers_5step.csv</code>, <code>05_all_markers*.csv</code> (18 columns)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -434,7 +434,7 @@ Each table lists every column. A triangle in the last column unfolds how it is c
 </details>
 
 <details>
-<summary><b>05 · <code>event_table_summary.csv</code> (6 columns, one row per subject)</b></summary>
+<summary><b>05 · <code>05_all_markers_summary.csv</code> (6 columns, one row per subject)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -448,7 +448,7 @@ Each table lists every column. A triangle in the last column unfolds how it is c
 </details>
 
 <details>
-<summary><b>05 · <code>all_subjects_trials_wide.csv</code> (14 columns, one row per trial)</b></summary>
+<summary><b>05 · <code>05_all_trials_wide.csv</code> (14 columns, one row per trial)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -464,7 +464,7 @@ Each table lists every column. A triangle in the last column unfolds how it is c
 </details>
 
 <details>
-<summary><b>05 · <code>timing_check.csv</code> (7 columns, one row per subject and marker)</b></summary>
+<summary><b>05 · <code>05_all_timing_check.csv</code> (7 columns, one row per subject and marker)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -477,7 +477,7 @@ Each table lists every column. A triangle in the last column unfolds how it is c
 </details>
 
 <details>
-<summary><b>00 · <code>run_check.csv</code> (9 columns, one row per subject)</b></summary>
+<summary><b>07 · <code>07_all_run_check.csv</code> (9 columns, one row per subject)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -509,7 +509,7 @@ One table per object: all columns of your `segmentsTable`, then 10 columns per e
 </details>
 
 <details>
-<summary><b>04 · <code>kret_results.csv</code> (16 columns, one row per subject × trial × segment = 4 per trial)</b></summary>
+<summary><b>04 · <code>04_all_segments.csv</code> (16 columns, one row per subject × trial × segment = 4 per trial)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -523,7 +523,7 @@ plus the 10 `leftPupil_*` statistic columns (same names as above, prefixed).
 </details>
 
 <details>
-<summary><b>04 · <code>trials_qc.csv</code> (19 columns = the 16 above + 3 QC flags, repeated on the 4 segment rows of a trial)</b></summary>
+<summary><b>04 · <code>04_all_trials_qc.csv</code> (19 columns = the 16 above + 3 QC flags, repeated on the 4 segment rows of a trial)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -531,12 +531,12 @@ plus the 10 `leftPupil_*` statistic columns (same names as above, prefixed).
 | `PreOutcomeMostlyMissing` | 0/1 | flag only, trial kept | <details><summary>details</summary>`preOutcome_SmoothSig_missingDataPercent > 50`. The trial's GLM modulator is not trustworthy. Rule R2.</details> |
 | `SubjectExcluded` | 0/1 | whole subject excluded | <details><summary>details</summary>More than 20% of the subject's trials rejected. Rule R3 (Leuchs / Shechner 20% rule).</details> |
 
-The first 16 columns are exactly `kret_results.csv`.
+The first 16 columns are exactly `04_all_segments.csv`.
 
 </details>
 
 <details>
-<summary><b>04 · <code>subjects_qc.csv</code> (5 columns, one row per subject)</b></summary>
+<summary><b>04 · <code>04_all_subjects_qc.csv</code> (5 columns, one row per subject)</b></summary>
 
 | column | unit | meaning | details |
 |---|---|---|---|
@@ -562,7 +562,7 @@ The first 16 columns are exactly `kret_results.csv`.
 </details>
 
 <details>
-<summary><b>06 · <code><sub>_final.csv</code> and <code>all_subjects_final.csv</code> — 69 columns, one row per marker</b></summary>
+<summary><b>06 · <code>06_<sub>_merged.csv</code> and <code>06_all_merged.csv</code> — 69 columns, one row per marker</b></summary>
 
 Built by `ymtcMergeResults` from the 5-step event table. Each segment's statistics sit on the marker row it belongs to: baseline → Onset, countdown and preOutcome → countdown row, postOutcome → Outcome row. WhiteNoise and Rating rows have `NaN` there. Full column list:
 
@@ -750,7 +750,14 @@ One `.trk` → one per-sample CSV plus a report. Needs no toolbox.
 <details>
 <summary><code>trk2csv_batch.m</code></summary>
 
-A folder of `.trk` → `csv/` plus `trk2csv_qc_summary.csv` and `trk2csv_issues.csv`.
+A folder of `.trk` → `csv/` plus `02_all_qc_summary.csv` and `02_all_issues.csv`.
+
+</details>
+
+<details>
+<summary><code>exportEvents.m</code></summary>
+
+A `.trk` (or a folder) → `03_事件/<sub>_events.csv`, one row per `SoftwareEvent`, with the event's own timestamp. This is what `ymtcEventTable` reads.
 
 </details>
 
@@ -771,28 +778,42 @@ One subject → marker table in task order. Picks the trial order by matching co
 <details>
 <summary><code>ymtcEventTableBatch.m</code></summary>
 
-All subjects at once, plus `event_table_summary.csv` and the combined tables.
+All subjects at once, plus `05_all_markers_summary.csv` and the combined tables.
 
 </details>
 
 <details>
 <summary><code>ymtcRunCheck.m</code></summary>
 
-Is every run really 21 trials? → `run_check.csv`.
+Is every run really 21 trials? → `07_all_run_check.csv`.
 
 </details>
 
 <details>
 <summary><code>ymtcTimingCheck.m, ymtcTrialWide.m</code></summary>
 
-Read the marker table: `timing_check.csv` and `all_subjects_trials_wide.csv`.
+Read the marker table: `05_all_timing_check.csv` and `05_all_trials_wide.csv`.
 
 </details>
 
 <details>
 <summary><code>ymtcMergeResults.m</code></summary>
 
-Joins the 5-step marker table with `kret_results.csv` and `trials_qc.csv` by participant + trial → `06_最终结果/<sub>_final.csv` and `all_subjects_final.csv` (69 columns). Nothing is repaired; a trial with no Kret row stays `NaN`.
+Joins the 5-step marker table with `04_all_segments.csv` and `04_all_trials_qc.csv` by participant + trial → `06_merged/06_<sub>_merged.csv` and `06_all_merged.csv` (69 columns). Nothing is repaired; a trial with no Kret row stays `NaN`.
+
+</details>
+
+<details>
+<summary><code>ymtcManipulationCheck.m</code></summary>
+
+Analysis side, with the data. Joins the rows that share `participant` + `run` + `trial` - a segment's statistics sit on its own start-marker row - and runs the manipulation check. Fixed and runs; the numbers it prints are not quoted in this reference, run it.
+
+</details>
+
+<details>
+<summary><code>ymtcFilterPlots.m</code></summary>
+
+Analysis side, with the data. Filter diagnostics for one recording: the raw samples, what each filter rejected, the trend line. Writes PNG - figures, not numbers.
 
 </details>
 
@@ -806,7 +827,7 @@ Adapter and batch script for the Kret pipeline (in `代码_matlab/`, outside thi
 <details>
 <summary><code>ymtcConfig.m, checkDocs.m</code></summary>
 
-Folder locations (no absolute path in the repository); `checkDocs` compares the documented columns with the real CSV headers.
+Folder locations (no absolute path in the repository); `checkDocs` compares its own hand-kept column list with the real CSV headers, so it catches a pipeline change but not a guide that was left behind.
 
 </details>
 
@@ -873,7 +894,11 @@ code/ymtc/                        in this repository
   example_kret_pipeline.m         140   filter -> interpolate -> segment -> stats
   ymtcTrialQC.m                   110   the three rejection rules
   ymtcMergeResults.m              ~110  how the 69 columns are assembled
+  ymtcManipulationCheck.m           ?    joins the segment rows, runs the check
+  ymtcFilterPlots.m                 ?    filter diagnostics, writes PNG
 ```
+
+`?` means the file is with the data and was not counted here. The last two are read on demand only: `ymtcManipulationCheck.m` when you are re-deriving a manipulation-check number, `ymtcFilterPlots.m` when you want to see what a filter threw away (it writes figures, not numbers).
 
 | read | what to confirm while reading | why it matters | time |
 |---|---|---|---|
@@ -941,7 +966,7 @@ Kret, M. E., & Sjak-Shie, E. E. (2019). Preprocessing pupil size data: Guideline
 | per-sample CSV | `02_samples/<name>.csv` | 1 / sample | 21 | trk2csv [ymtc] |
 | QC summary | `02_samples/02_all_qc_summary.csv` | 1 / file | 25 | trk2csv_batch [ymtc] |
 | issues | `02_samples/02_all_issues.csv` | 1 / anomaly | 5 | trk2csv_batch [ymtc] |
-| events | `03_events/<sub>_events.csv` | 1 / event | 3 | event extraction |
+| events | `03_events/<sub>_events.csv` | 1 / event | 3 | exportEvents [ymtc] |
 | event table | `05_markers/05_<sub>_markers[_5step].csv` | 1 / marker (624 · 372) | 18 | ymtcEventTable [ymtc] |
 | event summary | `05_markers/05_all_markers_summary.csv` | 1 / subject | 6 | ymtcEventTableBatch [ymtc] |
 | trials wide | `05_markers/05_all_trials_wide.csv` | 1 / trial | 14 | ymtcTrialWide [ymtc] |
@@ -972,12 +997,12 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 
 | 단계 | 함수 (파일:행) | 판단 | 주요 설정 |
 |---|---|---|---|
-| 1 범위 | `removeOutOfBounds` (`rawDataFilter.m:197`) | 그럴듯한 범위를 벗어난 직경은 무효 | `PupilDiameter_Min/_Max` (기본 1.5 / 9, **밀리미터**) |
-| 2 깜박임 | `madSpeedFilter` (`229`) + `expandGaps` (`511`) | `median + 16 MAD`를 넘는 샘플 간 속도, 그리고 75 ms보다 넓은 간격 주변 50 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
-| 3 추세 | `madDeviationFilter` (`284`) | 16 Hz 저역 통과 추세선에서 `median + 16 MAD` 이상 벗어난 점. 4회 반복으로 잘못 제거된 샘플이 돌아온다 | `residualsFilter_passes=4` |
-| 4 고립 | `removeLoners` (`440`) | 50 ms보다 좁고 40 ms 이상 떨어진 섬 | `minIslandWidth_ms=50`, `islandSeperation_ms=40` |
-| 5 평활 | `interpAndSmooth` (`ValidSamplesModel.m:107`) | 1000 Hz 선형 보간 후 4차 Butterworth 4 Hz, 영위상(`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
-| 6 구간 | `analyze` (`203`) | 구간별 평균/최소/최대/결측%를 평활 신호와 유효 샘플 양쪽에서 | — |
+| 1 범위 | `removeOutOfBounds` (`rawDataFilter.m:200`) | 그럴듯한 범위를 벗어난 직경은 무효 | `PupilDiameter_Min/_Max` (기본 1.5 / 9, **밀리미터**) |
+| 2 깜박임 | `madSpeedFilter` (`232`) + `expandGaps` (`514`) | `median + 16 MAD`를 넘는 샘플 간 속도, 그리고 75 ms보다 넓은 간격 주변 50 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
+| 3 추세 | `madDeviationFilter` (`287`) | 16 Hz 저역 통과 추세선에서 `median + 16 MAD` 이상 벗어난 점. 4회 반복으로 잘못 제거된 샘플이 돌아온다 | `residualsFilter_passes=4` |
+| 4 고립 | `removeLoners` (`443`) | 50 ms보다 좁고 40 ms 이상 떨어진 섬 | `minIslandWidth_ms=50`, `islandSeperation_ms=40` |
+| 5 평활 | `interpAndSmooth` (`ValidSamplesModel.m:110`) | 1000 Hz 선형 보간 후 4차 Butterworth 4 Hz, 영위상(`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
+| 6 구간 | `analyze` (`206`) | 구간별 평균/최소/최대/결측%를 평활 신호와 유효 샘플 양쪽에서 | — |
 
 모든 임계값은 `median + n*MAD`이며 평균 ± SD가 아니다. 큰 아티팩트 몇 개가 SD를 부풀려 스스로를 숨기기 때문이다. 위 값은 모두 논문 기본값이고, 우리 파이프라인은 범위 필터만 바꾼다(논문 값은 밀리미터, 우리 데이터는 픽셀).
 
@@ -1240,7 +1265,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>02 · <code>trk2csv_qc_summary.csv</code> (25열, .trk 파일마다 한 행)</b></summary>
+<summary><b>02 · <code>02_all_qc_summary.csv</code> (25열, .trk 파일마다 한 행)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1262,7 +1287,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>02 · <code>trk2csv_issues.csv</code> (5열, 이상치마다 한 행)</b></summary>
+<summary><b>02 · <code>02_all_issues.csv</code> (5열, 이상치마다 한 행)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1306,7 +1331,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>05 · 이벤트 표 — <code><sub>_event_table.csv</code>, <code><sub>_event_table_5step.csv</code>, <code>all_subjects_event_table*.csv</code> (18열)</b></summary>
+<summary><b>05 · 이벤트 표 — <code>05_<sub>_markers.csv</code>, <code>05_<sub>_markers_5step.csv</code>, <code>05_all_markers*.csv</code> (18열)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1332,7 +1357,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>05 · <code>event_table_summary.csv</code> (6열, 피험자마다 한 행)</b></summary>
+<summary><b>05 · <code>05_all_markers_summary.csv</code> (6열, 피험자마다 한 행)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1346,7 +1371,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>05 · <code>all_subjects_trials_wide.csv</code> (14열, trial마다 한 행)</b></summary>
+<summary><b>05 · <code>05_all_trials_wide.csv</code> (14열, trial마다 한 행)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1362,7 +1387,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>05 · <code>timing_check.csv</code> (7열, 피험자 × 마커마다 한 행)</b></summary>
+<summary><b>05 · <code>05_all_timing_check.csv</code> (7열, 피험자 × 마커마다 한 행)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1375,7 +1400,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>00 · <code>run_check.csv</code> (9열, 피험자마다 한 행)</b></summary>
+<summary><b>07 · <code>07_all_run_check.csv</code> (9열, 피험자마다 한 행)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1407,7 +1432,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>04 · <code>kret_results.csv</code> (16열, 피험자 × trial × 구간마다 한 행 = trial당 4행)</b></summary>
+<summary><b>04 · <code>04_all_segments.csv</code> (16열, 피험자 × trial × 구간마다 한 행 = trial당 4행)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1421,7 +1446,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>04 · <code>trials_qc.csv</code> (19열 = 위 16열 + QC 표시 3개, trial의 4개 구간 행에 반복)</b></summary>
+<summary><b>04 · <code>04_all_trials_qc.csv</code> (19열 = 위 16열 + QC 표시 3개, trial의 4개 구간 행에 반복)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1429,12 +1454,12 @@ valid 원시 샘플만: 시각(ms)과 직경.
 | `PreOutcomeMostlyMissing` | 0/1 | 표시만 하고 trial은 유지 | <details><summary>세부</summary>`preOutcome_SmoothSig_missingDataPercent > 50`. 그 trial의 GLM 조절 변수는 믿을 수 없다. 규칙 R2.</details> |
 | `SubjectExcluded` | 0/1 | 피험자 전체 제외 | <details><summary>세부</summary>피험자 trial의 20% 초과가 제외됨. 규칙 R3(Leuchs / Shechner 20% 규칙).</details> |
 
-앞 16열은 `kret_results.csv`와 완전히 같다.
+앞 16열은 `04_all_segments.csv`와 완전히 같다.
 
 </details>
 
 <details>
-<summary><b>04 · <code>subjects_qc.csv</code> (5열, 피험자마다 한 행)</b></summary>
+<summary><b>04 · <code>04_all_subjects_qc.csv</code> (5열, 피험자마다 한 행)</b></summary>
 
 | 열 | 단위 | 의미 | 세부 |
 |---|---|---|---|
@@ -1460,7 +1485,7 @@ valid 원시 샘플만: 시각(ms)과 직경.
 </details>
 
 <details>
-<summary><b>06 · <code><sub>_final.csv</code>와 <code>all_subjects_final.csv</code> — 69열, 마커마다 한 행</b></summary>
+<summary><b>06 · <code>06_<sub>_merged.csv</code>와 <code>06_all_merged.csv</code> — 69열, 마커마다 한 행</b></summary>
 
 `ymtcMergeResults`가 5단계 이벤트 표로 만든다. 각 구간의 통계는 그 구간이 속한 마커 행에 놓인다: baseline → Onset, countdown·preOutcome → 카운트다운 행, postOutcome → Outcome 행. WhiteNoise와 Rating 행은 거기가 `NaN`. 전체 열 목록:
 
@@ -1648,7 +1673,14 @@ MATLAB이 8.3보다 오래돼 `table`이 없으면 `LEGACY/`를 경로에 추가
 <details>
 <summary><code>trk2csv_batch.m</code></summary>
 
-`.trk` 폴더 → `csv/`와 `trk2csv_qc_summary.csv`, `trk2csv_issues.csv`.
+`.trk` 폴더 → `csv/`와 `02_all_qc_summary.csv`, `02_all_issues.csv`.
+
+</details>
+
+<details>
+<summary><code>exportEvents.m</code></summary>
+
+`.trk`(또는 폴더) → `03_事件/<sub>_events.csv`, `SoftwareEvent`마다 한 행, 이벤트 자체의 타임스탬프. `ymtcEventTable`이 읽는 표다.
 
 </details>
 
@@ -1669,28 +1701,42 @@ MATLAB이 8.3보다 오래돼 `table`이 없으면 `LEGACY/`를 경로에 추가
 <details>
 <summary><code>ymtcEventTableBatch.m</code></summary>
 
-모든 피험자를 한 번에, 그리고 `event_table_summary.csv`와 합본 표.
+모든 피험자를 한 번에, 그리고 `05_all_markers_summary.csv`와 합본 표.
 
 </details>
 
 <details>
 <summary><code>ymtcRunCheck.m</code></summary>
 
-모든 run이 정말 21 trial인가? → `run_check.csv`.
+모든 run이 정말 21 trial인가? → `07_all_run_check.csv`.
 
 </details>
 
 <details>
 <summary><code>ymtcTimingCheck.m, ymtcTrialWide.m</code></summary>
 
-마커 표를 읽는다: `timing_check.csv`, `all_subjects_trials_wide.csv`.
+마커 표를 읽는다: `05_all_timing_check.csv`, `05_all_trials_wide.csv`.
 
 </details>
 
 <details>
 <summary><code>ymtcMergeResults.m</code></summary>
 
-5단계 마커 표를 participant + trial 기준으로 `kret_results.csv`, `trials_qc.csv`와 결합 → `06_最终结果/<sub>_final.csv`, `all_subjects_final.csv`(69열). 아무것도 고치지 않으며 Kret 행이 없는 trial은 `NaN`.
+5단계 마커 표를 participant + trial 기준으로 `04_all_segments.csv`, `04_all_trials_qc.csv`와 결합 → `06_merged/06_<sub>_merged.csv`, `06_all_merged.csv`(69열). 아무것도 고치지 않으며 Kret 행이 없는 trial은 `NaN`.
+
+</details>
+
+<details>
+<summary><code>ymtcManipulationCheck.m</code></summary>
+
+분석 측, 데이터와 함께. `participant` + `run` + `trial`이 같은 행들을 결합하고(구간 통계는 그 구간 시작 마커 행에 있다) 조작 점검을 돌린다. 수정되어 실행된다; 출력하는 수치는 이 문서에 인용하지 않는다, 직접 돌릴 것.
+
+</details>
+
+<details>
+<summary><code>ymtcFilterPlots.m</code></summary>
+
+분석 측, 데이터와 함께. 한 기록의 필터 진단: 원시 샘플, 각 필터가 제외한 것, 추세선. PNG를 쓴다 - 숫자가 아니라 그림.
 
 </details>
 
@@ -1704,7 +1750,7 @@ Kret 파이프라인용 어댑터와 일괄 실행 스크립트(`代码_matlab/`
 <details>
 <summary><code>ymtcConfig.m, checkDocs.m</code></summary>
 
-폴더 위치(저장소에 절대 경로 없음); `checkDocs`는 문서화된 열과 실제 CSV 헤더를 비교.
+폴더 위치(저장소에 절대 경로 없음); `checkDocs`는 손으로 관리하는 기대 열 목록과 실제 CSV 헤더를 비교한다. 파이프라인 변경은 잡지만 문서가 뒤처진 것은 잡지 못한다.
 
 </details>
 
@@ -1771,7 +1817,11 @@ code/ymtc/                        이 저장소
   example_kret_pipeline.m         140   필터 -> 보간 -> 구간 -> 통계
   ymtcTrialQC.m                   110   세 가지 제외 규칙
   ymtcMergeResults.m              ~110  69개 열이 만들어지는 방식
+  ymtcManipulationCheck.m           ?    구간 행을 결합해 조작 점검 실행
+  ymtcFilterPlots.m                 ?    필터 진단, PNG 출력
 ```
+
+`?`는 파일이 데이터 쪽에 있어 여기서 세지 않았다는 뜻이다. 마지막 두 개는 필요할 때만 읽는다: `ymtcManipulationCheck.m`은 조작 점검 수치를 다시 낼 때, `ymtcFilterPlots.m`은 필터가 무엇을 버렸는지 볼 때(숫자가 아니라 그림을 쓴다).
 
 | 읽기 | 읽으면서 확인할 것 | 왜 중요한가 | 시간 |
 |---|---|---|---|
@@ -1838,7 +1888,7 @@ Kret, M. E., & Sjak-Shie, E. E. (2019). Preprocessing pupil size data: Guideline
 | per-sample CSV | `02_samples/<name>.csv` | 1 / sample | 21 | trk2csv [ymtc] |
 | QC summary | `02_samples/02_all_qc_summary.csv` | 1 / file | 25 | trk2csv_batch [ymtc] |
 | issues | `02_samples/02_all_issues.csv` | 1 / anomaly | 5 | trk2csv_batch [ymtc] |
-| events | `03_events/<sub>_events.csv` | 1 / event | 3 | event extraction |
+| events | `03_events/<sub>_events.csv` | 1 / event | 3 | exportEvents [ymtc] |
 | event table | `05_markers/05_<sub>_markers[_5step].csv` | 1 / marker (624 · 372) | 18 | ymtcEventTable [ymtc] |
 | event summary | `05_markers/05_all_markers_summary.csv` | 1 / subject | 6 | ymtcEventTableBatch [ymtc] |
 | trials wide | `05_markers/05_all_trials_wide.csv` | 1 / trial | 14 | ymtcTrialWide [ymtc] |
@@ -1869,11 +1919,11 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 
 | 阶段 | 函数（文件:行） | 判断什么 | 关键设置 |
 |---|---|---|---|
-| 1 范围 | `removeOutOfBounds`（`rawDataFilter.m:197`） | 直径超出合理范围即无效 | `PupilDiameter_Min/_Max`（默认 1.5 / 9，**毫米**） |
+| 1 范围 | `removeOutOfBounds`（`rawDataFilter.m:200`） | 直径超出合理范围即无效 | `PupilDiameter_Min/_Max`（默认 1.5 / 9，**毫米**） |
 | 2 眨眼 | `madSpeedFilter`（`229`）+ `expandGaps`（`511`） | 相邻样本速度超过 `median + 16 MAD`；再把宽于 75 ms 的缺口前后各 50 ms 去掉 | `dilationSpeedFilter_MadMultiplier=16`、`maxGap_ms=200` |
 | 3 趋势 | `madDeviationFilter`（`284`） | 离 16 Hz 低通趋势线超过 `median + 16 MAD` 的点；**回扫 4 趟**让被误删的好样本复活 | `residualsFilter_passes=4` |
 | 4 孤立 | `removeLoners`（`440`） | 窄于 50 ms、且与邻段隔开 40 ms 以上的孤岛 | `minIslandWidth_ms=50`、`islandSeperation_ms=40` |
-| 5 平滑 | `interpAndSmooth`（`ValidSamplesModel.m:107`） | 线性插值到 1000 Hz，再走 4 阶 Butterworth 4 Hz、零相位（`filtfilt`） | `interp_upsamplingFreq=1000`、`LpFilt_cutoffFreq=4` |
+| 5 平滑 | `interpAndSmooth`（`ValidSamplesModel.m:110`） | 线性插值到 1000 Hz，再走 4 阶 Butterworth 4 Hz、零相位（`filtfilt`） | `interp_upsamplingFreq=1000`、`LpFilt_cutoffFreq=4` |
 | 6 分段 | `analyze`（`203`） | 每段的均值/最小/最大/缺失%，平滑信号和有效样本各算一套 | — |
 
 所有阈值都是 `median + n*MAD`，不是均值 ± SD——少数巨大伪影会把 SD 撑大，反而把自己藏起来。上面全是论文默认值；我们的管线只改了范围滤波，因为论文的数字是毫米、我们的数据是相机像素。
@@ -2137,7 +2187,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>02 · <code>trk2csv_qc_summary.csv</code>（25 列，每个 .trk 文件一行）</b></summary>
+<summary><b>02 · <code>02_all_qc_summary.csv</code>（25 列，每个 .trk 文件一行）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2159,7 +2209,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>02 · <code>trk2csv_issues.csv</code>（5 列，每条异常一行）</b></summary>
+<summary><b>02 · <code>02_all_issues.csv</code>（5 列，每条异常一行）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2203,7 +2253,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>05 · 事件表 —— <code><sub>_event_table.csv</code>、<code><sub>_event_table_5step.csv</code>、<code>all_subjects_event_table*.csv</code>（18 列）</b></summary>
+<summary><b>05 · 事件表 —— <code>05_<sub>_markers.csv</code>、<code>05_<sub>_markers_5step.csv</code>、<code>05_all_markers*.csv</code>（18 列）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2229,7 +2279,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>05 · <code>event_table_summary.csv</code>（6 列，每个被试一行）</b></summary>
+<summary><b>05 · <code>05_all_markers_summary.csv</code>（6 列，每个被试一行）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2243,7 +2293,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>05 · <code>all_subjects_trials_wide.csv</code>（14 列，每个 trial 一行）</b></summary>
+<summary><b>05 · <code>05_all_trials_wide.csv</code>（14 列，每个 trial 一行）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2259,7 +2309,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>05 · <code>timing_check.csv</code>（7 列，每个被试 × marker 一行）</b></summary>
+<summary><b>05 · <code>05_all_timing_check.csv</code>（7 列，每个被试 × marker 一行）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2272,7 +2322,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>00 · <code>run_check.csv</code>（9 列，每个被试一行）</b></summary>
+<summary><b>07 · <code>07_all_run_check.csv</code>（9 列，每个被试一行）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2304,7 +2354,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>04 · <code>kret_results.csv</code>（16 列，每个被试 × trial × 分段一行 = 每 trial 4 行）</b></summary>
+<summary><b>04 · <code>04_all_segments.csv</code>（16 列，每个被试 × trial × 分段一行 = 每 trial 4 行）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2318,7 +2368,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>04 · <code>trials_qc.csv</code>（19 列 = 上面 16 列 + 3 个质控标记，在 trial 的 4 个分段行上重复）</b></summary>
+<summary><b>04 · <code>04_all_trials_qc.csv</code>（19 列 = 上面 16 列 + 3 个质控标记，在 trial 的 4 个分段行上重复）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2326,12 +2376,12 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 | `PreOutcomeMostlyMissing` | 0/1 | 只标记，trial 保留 | <details><summary>细节</summary>`preOutcome_SmoothSig_missingDataPercent > 50`。该 trial 的 GLM 调节量不可信。规则 R2。</details> |
 | `SubjectExcluded` | 0/1 | 整个被试被排除 | <details><summary>细节</summary>该被试被剔除的 trial 超过 20%。规则 R3（Leuchs / Shechner 20% 规则）。</details> |
 
-前 16 列与 `kret_results.csv` 完全一致。
+前 16 列与 `04_all_segments.csv` 完全一致。
 
 </details>
 
 <details>
-<summary><b>04 · <code>subjects_qc.csv</code>（5 列，每个被试一行）</b></summary>
+<summary><b>04 · <code>04_all_subjects_qc.csv</code>（5 列，每个被试一行）</b></summary>
 
 | 列 | 单位 | 含义 | 细节 |
 |---|---|---|---|
@@ -2357,7 +2407,7 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 <details>
-<summary><b>06 · <code><sub>_final.csv</code> 与 <code>all_subjects_final.csv</code> —— 69 列，每个 marker 一行</b></summary>
+<summary><b>06 · <code>06_<sub>_merged.csv</code> 与 <code>06_all_merged.csv</code> —— 69 列，每个 marker 一行</b></summary>
 
 由 `ymtcMergeResults` 基于 5 步事件表合并而成。每个分段的统计量放在它所属的 marker 行上：baseline → Onset，countdown 和 preOutcome → 倒计时行，postOutcome → Outcome 行；WhiteNoise 和 Rating 行在这些列上是 `NaN`。完整列表：
 
@@ -2545,7 +2595,14 @@ MATLAB 低于 8.3（没有 `table`）时把 `LEGACY/` 加进路径；新版本�
 <details>
 <summary><code>trk2csv_batch.m</code></summary>
 
-一个 `.trk` 文件夹 → `csv/`，外加 `trk2csv_qc_summary.csv` 与 `trk2csv_issues.csv`。
+一个 `.trk` 文件夹 → `csv/`，外加 `02_all_qc_summary.csv` 与 `02_all_issues.csv`。
+
+</details>
+
+<details>
+<summary><code>exportEvents.m</code></summary>
+
+`.trk`（或文件夹）→ `03_事件/<sub>_events.csv`，每个 `SoftwareEvent` 一行，带事件自己的时刻。`ymtcEventTable` 读的就是它。
 
 </details>
 
@@ -2566,28 +2623,42 @@ MATLAB 低于 8.3（没有 `table`）时把 `LEGACY/` 加进路径；新版本�
 <details>
 <summary><code>ymtcEventTableBatch.m</code></summary>
 
-一次处理所有被试，并产出 `event_table_summary.csv` 与合并表。
+一次处理所有被试，并产出 `05_all_markers_summary.csv` 与合并表。
 
 </details>
 
 <details>
 <summary><code>ymtcRunCheck.m</code></summary>
 
-每个 run 真的是 21 个 trial 吗？→ `run_check.csv`。
+每个 run 真的是 21 个 trial 吗？→ `07_all_run_check.csv`。
 
 </details>
 
 <details>
 <summary><code>ymtcTimingCheck.m, ymtcTrialWide.m</code></summary>
 
-读取 marker 表：生成 `timing_check.csv` 与 `all_subjects_trials_wide.csv`。
+读取 marker 表：生成 `05_all_timing_check.csv` 与 `05_all_trials_wide.csv`。
 
 </details>
 
 <details>
 <summary><code>ymtcMergeResults.m</code></summary>
 
-按 participant + trial 把 5 步 marker 表与 `kret_results.csv`、`trials_qc.csv` 合并 → `06_最终结果/<sub>_final.csv` 和 `all_subjects_final.csv`（69 列）。不做修补，没有 Kret 行的 trial 保持 `NaN`。
+按 participant + trial 把 5 步 marker 表与 `04_all_segments.csv`、`04_all_trials_qc.csv` 合并 → `06_merged/06_<sub>_merged.csv` 和 `06_all_merged.csv`（69 列）。不做修补，没有 Kret 行的 trial 保持 `NaN`。
+
+</details>
+
+<details>
+<summary><code>ymtcManipulationCheck.m</code></summary>
+
+分析侧，跟数据在一起。把 `participant` + `run` + `trial` 相同的行合起来（段的统计落在该段起始 marker 那行），跑操作检验。已修好、能跑；它打印的数字本文档不引用，请自己跑。
+
+</details>
+
+<details>
+<summary><code>ymtcFilterPlots.m</code></summary>
+
+分析侧，跟数据在一起。单份记录的滤波诊断：原始样本、各滤波剔掉了什么、趋势线。写 PNG —— 出的是图，不是数字。
 
 </details>
 
@@ -2601,7 +2672,7 @@ Kret 管线的适配器和批量脚本（在 `代码_matlab/`，不在本仓库�
 <details>
 <summary><code>ymtcConfig.m, checkDocs.m</code></summary>
 
-文件夹位置（仓库里没有绝对路径）；`checkDocs` 把文档里的列与真实 CSV 表头对比。
+文件夹位置（仓库里没有绝对路径）；`checkDocs` 用它自己手写的期望列清单比对真实 CSV 表头——能抓到管线变动，抓不到文档没跟上。
 
 </details>
 
@@ -2668,7 +2739,11 @@ code/ymtc/                        在本仓库里
   example_kret_pipeline.m         140   滤波 → 插值 → 分段 → 统计
   ymtcTrialQC.m                   110   三条剔除规则
   ymtcMergeResults.m              ~110  69 列是怎么拼出来的
+  ymtcManipulationCheck.m           ?    合起段的行，跑操作检验
+  ymtcFilterPlots.m                 ?    滤波诊断，出 PNG
 ```
+
+`?` 表示文件在数据侧，这里没数行数。最后两个按需读：要重新得出操作检验的数字时读 `ymtcManipulationCheck.m`，想看滤波器丢了什么的时候读 `ymtcFilterPlots.m`（它出图，不出数）。
 
 | 读 | 读的时候确认什么 | 为什么重要 | 时间 |
 |---|---|---|---|

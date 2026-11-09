@@ -456,7 +456,9 @@ YMTC_FILES = [
     ("ymtcEventTableBatch.m", T("All subjects at once, plus `05_all_markers_summary.csv` and the combined tables.", "모든 피험자를 한 번에, 그리고 `05_all_markers_summary.csv`와 합본 표.", "一次处理所有被试，并产出 `05_all_markers_summary.csv` 与合并表。")),
     ("ymtcRunCheck.m", T("Is every run really 21 trials? → `07_all_run_check.csv`.", "모든 run이 정말 21 trial인가? → `07_all_run_check.csv`.", "每个 run 真的是 21 个 trial 吗？→ `07_all_run_check.csv`。")),
     ("ymtcTimingCheck.m, ymtcTrialWide.m", T("Read the marker table: `05_all_timing_check.csv` and `05_all_trials_wide.csv`.", "마커 표를 읽는다: `05_all_timing_check.csv`, `05_all_trials_wide.csv`.", "读取 marker 表：生成 `05_all_timing_check.csv` 与 `05_all_trials_wide.csv`。")),
-    ("ymtcMergeResults.m", T("Joins the 5-step marker table with `04_all_segments.csv` and `04_all_trials_qc.csv` by participant + trial → `06_最终结果/06_<sub>_merged.csv` and `06_all_merged.csv` (69 columns). Nothing is repaired; a trial with no Kret row stays `NaN`.", "5단계 마커 표를 participant + trial 기준으로 `04_all_segments.csv`, `04_all_trials_qc.csv`와 결합 → `06_最终结果/06_<sub>_merged.csv`, `06_all_merged.csv`(69열). 아무것도 고치지 않으며 Kret 행이 없는 trial은 `NaN`.", "按 participant + trial 把 5 步 marker 表与 `04_all_segments.csv`、`04_all_trials_qc.csv` 合并 → `06_最终结果/06_<sub>_merged.csv` 和 `06_all_merged.csv`（69 列）。不做修补，没有 Kret 行的 trial 保持 `NaN`。")),
+    ("ymtcMergeResults.m", T("Joins the 5-step marker table with `04_all_segments.csv` and `04_all_trials_qc.csv` by participant + trial → `06_merged/06_<sub>_merged.csv` and `06_all_merged.csv` (69 columns). Nothing is repaired; a trial with no Kret row stays `NaN`.", "5단계 마커 표를 participant + trial 기준으로 `04_all_segments.csv`, `04_all_trials_qc.csv`와 결합 → `06_merged/06_<sub>_merged.csv`, `06_all_merged.csv`(69열). 아무것도 고치지 않으며 Kret 행이 없는 trial은 `NaN`.", "按 participant + trial 把 5 步 marker 表与 `04_all_segments.csv`、`04_all_trials_qc.csv` 合并 → `06_merged/06_<sub>_merged.csv` 和 `06_all_merged.csv`（69 列）。不做修补，没有 Kret 行的 trial 保持 `NaN`。")),
+    ("ymtcManipulationCheck.m", T("Analysis side, with the data. Joins the rows that share `participant` + `run` + `trial` - a segment's statistics sit on its own start-marker row - and runs the manipulation check. Fixed and runs; the numbers it prints are not quoted in this reference, run it.", "분석 측, 데이터와 함께. `participant` + `run` + `trial`이 같은 행들을 결합하고(구간 통계는 그 구간 시작 마커 행에 있다) 조작 점검을 돌린다. 수정되어 실행된다; 출력하는 수치는 이 문서에 인용하지 않는다, 직접 돌릴 것.", "分析侧，跟数据在一起。把 `participant` + `run` + `trial` 相同的行合起来（段的统计落在该段起始 marker 那行），跑操作检验。已修好、能跑；它打印的数字本文档不引用，请自己跑。")),
+    ("ymtcFilterPlots.m", T("Analysis side, with the data. Filter diagnostics for one recording: the raw samples, what each filter rejected, the trend line. Writes PNG - figures, not numbers.", "분석 측, 데이터와 함께. 한 기록의 필터 진단: 원시 샘플, 각 필터가 제외한 것, 추세선. PNG를 쓴다 - 숫자가 아니라 그림.", "分析侧，跟数据在一起。单份记录的滤波诊断：原始样本、各滤波剔掉了什么、趋势线。写 PNG —— 出的是图，不是数字。")),
     ("csv2kretmat.m, example_kret_pipeline.m", T("Adapter and batch script for the Kret pipeline (in `代码_matlab/`, outside this repository). The adapter re-references time to 0, removes duplicate timestamps (keeps the first), sets `NaN` where `pupil_valid == 0`, and writes `diameterUnit = 'px'`.", "Kret 파이프라인용 어댑터와 일괄 실행 스크립트(`代码_matlab/`, 이 저장소 밖). 어댑터는 시간을 0 기준으로 바꾸고, 중복 타임스탬프를 제거(첫 번째 유지)하고, `pupil_valid == 0`인 곳을 `NaN`으로 하며 `diameterUnit = 'px'`를 쓴다.", "Kret 管线的适配器和批量脚本（在 `代码_matlab/`，不在本仓库内）。适配器把时间重新参考到 0、去掉重复时间戳（保留第一个）、把 `pupil_valid == 0` 处设为 `NaN`，并写入 `diameterUnit = 'px'`。")),
     ("ymtcConfig.m, checkDocs.m", T("Folder locations (no absolute path in the repository); `checkDocs` compares its own hand-kept column list with the real CSV headers, so it catches a pipeline change but not a guide that was left behind.", "폴더 위치(저장소에 절대 경로 없음); `checkDocs`는 손으로 관리하는 기대 열 목록과 실제 CSV 헤더를 비교한다. 파이프라인 변경은 잡지만 문서가 뒤처진 것은 잡지 못한다.", "文件夹位置（仓库里没有绝对路径）；`checkDocs` 用它自己手写的期望列清单比对真实 CSV 表头——能抓到管线变动，抓不到文档没跟上。")),
 ]
@@ -595,7 +597,11 @@ code/ymtc/                        in this repository
   example_kret_pipeline.m         140   filter -> interpolate -> segment -> stats
   ymtcTrialQC.m                   110   the three rejection rules
   ymtcMergeResults.m              ~110  how the 69 columns are assembled
+  ymtcManipulationCheck.m           ?    joins the segment rows, runs the check
+  ymtcFilterPlots.m                 ?    filter diagnostics, writes PNG
 ```
+
+`?` means the file is with the data and was not counted here. The last two are read on demand only: `ymtcManipulationCheck.m` when you are re-deriving a manipulation-check number, `ymtcFilterPlots.m` when you want to see what a filter threw away (it writes figures, not numbers).
 
 | read | what to confirm while reading | why it matters | time |
 |---|---|---|---|
@@ -629,7 +635,11 @@ code/ymtc/                        이 저장소
   example_kret_pipeline.m         140   필터 -> 보간 -> 구간 -> 통계
   ymtcTrialQC.m                   110   세 가지 제외 규칙
   ymtcMergeResults.m              ~110  69개 열이 만들어지는 방식
+  ymtcManipulationCheck.m           ?    구간 행을 결합해 조작 점검 실행
+  ymtcFilterPlots.m                 ?    필터 진단, PNG 출력
 ```
+
+`?`는 파일이 데이터 쪽에 있어 여기서 세지 않았다는 뜻이다. 마지막 두 개는 필요할 때만 읽는다: `ymtcManipulationCheck.m`은 조작 점검 수치를 다시 낼 때, `ymtcFilterPlots.m`은 필터가 무엇을 버렸는지 볼 때(숫자가 아니라 그림을 쓴다).
 
 | 읽기 | 읽으면서 확인할 것 | 왜 중요한가 | 시간 |
 |---|---|---|---|
@@ -663,7 +673,11 @@ code/ymtc/                        在本仓库里
   example_kret_pipeline.m         140   滤波 → 插值 → 分段 → 统计
   ymtcTrialQC.m                   110   三条剔除规则
   ymtcMergeResults.m              ~110  69 列是怎么拼出来的
+  ymtcManipulationCheck.m           ?    合起段的行，跑操作检验
+  ymtcFilterPlots.m                 ?    滤波诊断，出 PNG
 ```
+
+`?` 表示文件在数据侧，这里没数行数。最后两个按需读：要重新得出操作检验的数字时读 `ymtcManipulationCheck.m`，想看滤波器丢了什么的时候读 `ymtcFilterPlots.m`（它出图，不出数）。
 
 | 读 | 读的时候确认什么 | 为什么重要 | 时间 |
 |---|---|---|---|
@@ -686,12 +700,12 @@ KRET_DETAIL = {
 
 | stage | function (file:line) | decision | key settings |
 |---|---|---|---|
-| 1 range | `removeOutOfBounds` (`rawDataFilter.m:197`) | diameter outside the plausible range becomes invalid | `PupilDiameter_Min/_Max` (defaults 1.5 / 9, **millimetres**) |
-| 2 blink | `madSpeedFilter` (`229`) + `expandGaps` (`511`) | sample-to-sample speed above `median + 16 MAD`; plus 50 ms around every gap wider than 75 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
-| 3 trend | `madDeviationFilter` (`284`) | distance from a 16 Hz low-passed trend line above `median + 16 MAD`; 4 passes let wrongly rejected samples come back | `residualsFilter_passes=4`, `MadMultiplier=16` |
-| 4 islands | `removeLoners` (`440`) | islands narrower than 50 ms, separated by more than 40 ms | `islandFilter_minIslandWidth_ms=50`, `_islandSeperation_ms=40` |
-| 5 smooth | `interpAndSmooth` (`ValidSamplesModel.m:107`) | linear interpolation to 1000 Hz, then a 4th-order Butterworth at 4 Hz, zero phase (`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
-| 6 segments | `analyze` (`203`) | per-segment mean / min / max / missing% from the smooth signal **and** from the valid samples | — |
+| 1 range | `removeOutOfBounds` (`rawDataFilter.m:200`) | diameter outside the plausible range becomes invalid | `PupilDiameter_Min/_Max` (defaults 1.5 / 9, **millimetres**) |
+| 2 blink | `madSpeedFilter` (`232`) + `expandGaps` (`514`) | sample-to-sample speed above `median + 16 MAD`; plus 50 ms around every gap wider than 75 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
+| 3 trend | `madDeviationFilter` (`287`) | distance from a 16 Hz low-passed trend line above `median + 16 MAD`; 4 passes let wrongly rejected samples come back | `residualsFilter_passes=4`, `MadMultiplier=16` |
+| 4 islands | `removeLoners` (`443`) | islands narrower than 50 ms, separated by more than 40 ms | `islandFilter_minIslandWidth_ms=50`, `_islandSeperation_ms=40` |
+| 5 smooth | `interpAndSmooth` (`ValidSamplesModel.m:110`) | linear interpolation to 1000 Hz, then a 4th-order Butterworth at 4 Hz, zero phase (`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
+| 6 segments | `analyze` (`206`) | per-segment mean / min / max / missing% from the smooth signal **and** from the valid samples | — |
 
 Every threshold is `median + n*MAD`, never mean +/- SD, because a handful of large artifacts would inflate an SD enough to hide themselves. All values above are paper defaults; our pipeline changes only the range filter, since the paper's numbers are millimetres and our data are camera pixels.
 
@@ -700,12 +714,12 @@ The code never edits the diameter. `rawDataFilter` returns one logical vector (`
 
 | 단계 | 함수 (파일:행) | 판단 | 주요 설정 |
 |---|---|---|---|
-| 1 범위 | `removeOutOfBounds` (`rawDataFilter.m:197`) | 그럴듯한 범위를 벗어난 직경은 무효 | `PupilDiameter_Min/_Max` (기본 1.5 / 9, **밀리미터**) |
-| 2 깜박임 | `madSpeedFilter` (`229`) + `expandGaps` (`511`) | `median + 16 MAD`를 넘는 샘플 간 속도, 그리고 75 ms보다 넓은 간격 주변 50 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
-| 3 추세 | `madDeviationFilter` (`284`) | 16 Hz 저역 통과 추세선에서 `median + 16 MAD` 이상 벗어난 점. 4회 반복으로 잘못 제거된 샘플이 돌아온다 | `residualsFilter_passes=4` |
-| 4 고립 | `removeLoners` (`440`) | 50 ms보다 좁고 40 ms 이상 떨어진 섬 | `minIslandWidth_ms=50`, `islandSeperation_ms=40` |
-| 5 평활 | `interpAndSmooth` (`ValidSamplesModel.m:107`) | 1000 Hz 선형 보간 후 4차 Butterworth 4 Hz, 영위상(`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
-| 6 구간 | `analyze` (`203`) | 구간별 평균/최소/최대/결측%를 평활 신호와 유효 샘플 양쪽에서 | — |
+| 1 범위 | `removeOutOfBounds` (`rawDataFilter.m:200`) | 그럴듯한 범위를 벗어난 직경은 무효 | `PupilDiameter_Min/_Max` (기본 1.5 / 9, **밀리미터**) |
+| 2 깜박임 | `madSpeedFilter` (`232`) + `expandGaps` (`514`) | `median + 16 MAD`를 넘는 샘플 간 속도, 그리고 75 ms보다 넓은 간격 주변 50 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
+| 3 추세 | `madDeviationFilter` (`287`) | 16 Hz 저역 통과 추세선에서 `median + 16 MAD` 이상 벗어난 점. 4회 반복으로 잘못 제거된 샘플이 돌아온다 | `residualsFilter_passes=4` |
+| 4 고립 | `removeLoners` (`443`) | 50 ms보다 좁고 40 ms 이상 떨어진 섬 | `minIslandWidth_ms=50`, `islandSeperation_ms=40` |
+| 5 평활 | `interpAndSmooth` (`ValidSamplesModel.m:110`) | 1000 Hz 선형 보간 후 4차 Butterworth 4 Hz, 영위상(`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
+| 6 구간 | `analyze` (`206`) | 구간별 평균/최소/최대/결측%를 평활 신호와 유효 샘플 양쪽에서 | — |
 
 모든 임계값은 `median + n*MAD`이며 평균 ± SD가 아니다. 큰 아티팩트 몇 개가 SD를 부풀려 스스로를 숨기기 때문이다. 위 값은 모두 논문 기본값이고, 우리 파이프라인은 범위 필터만 바꾼다(논문 값은 밀리미터, 우리 데이터는 픽셀).
 
@@ -714,11 +728,11 @@ The code never edits the diameter. `rawDataFilter` returns one logical vector (`
 
 | 阶段 | 函数（文件:行） | 判断什么 | 关键设置 |
 |---|---|---|---|
-| 1 范围 | `removeOutOfBounds`（`rawDataFilter.m:197`） | 直径超出合理范围即无效 | `PupilDiameter_Min/_Max`（默认 1.5 / 9，**毫米**） |
+| 1 范围 | `removeOutOfBounds`（`rawDataFilter.m:200`） | 直径超出合理范围即无效 | `PupilDiameter_Min/_Max`（默认 1.5 / 9，**毫米**） |
 | 2 眨眼 | `madSpeedFilter`（`229`）+ `expandGaps`（`511`） | 相邻样本速度超过 `median + 16 MAD`；再把宽于 75 ms 的缺口前后各 50 ms 去掉 | `dilationSpeedFilter_MadMultiplier=16`、`maxGap_ms=200` |
 | 3 趋势 | `madDeviationFilter`（`284`） | 离 16 Hz 低通趋势线超过 `median + 16 MAD` 的点；**回扫 4 趟**让被误删的好样本复活 | `residualsFilter_passes=4` |
 | 4 孤立 | `removeLoners`（`440`） | 窄于 50 ms、且与邻段隔开 40 ms 以上的孤岛 | `minIslandWidth_ms=50`、`islandSeperation_ms=40` |
-| 5 平滑 | `interpAndSmooth`（`ValidSamplesModel.m:107`） | 线性插值到 1000 Hz，再走 4 阶 Butterworth 4 Hz、零相位（`filtfilt`） | `interp_upsamplingFreq=1000`、`LpFilt_cutoffFreq=4` |
+| 5 平滑 | `interpAndSmooth`（`ValidSamplesModel.m:110`） | 线性插值到 1000 Hz，再走 4 阶 Butterworth 4 Hz、零相位（`filtfilt`） | `interp_upsamplingFreq=1000`、`LpFilt_cutoffFreq=4` |
 | 6 分段 | `analyze`（`203`） | 每段的均值/最小/最大/缺失%，平滑信号和有效样本各算一套 | — |
 
 所有阈值都是 `median + n*MAD`，不是均值 ± SD——少数巨大伪影会把 SD 撑大，反而把自己藏起来。上面全是论文默认值；我们的管线只改了范围滤波，因为论文的数字是毫米、我们的数据是相机像素。
@@ -1069,7 +1083,9 @@ def sectionlang(lang):
     return "\n".join(o) + "\n"
 
 
-def build():
+def build_text():
+    """The whole reference page as one string. Kept out of build() so that
+    tools/check_docs.py can compare the generated text with the checked-in copy."""
     top = ['<a id="top"></a>', "",
            "**[English](#english) · [한국어](#한국어) · [中文](#中文)**", ""]
     parts = list(top)
@@ -1081,7 +1097,11 @@ def build():
         parts.append("")
         parts.append("---")
         parts.append("")
-    text = "\n".join(parts).rstrip("-\n ") + "\n"
+    return "\n".join(parts).rstrip("-\n ") + "\n"
+
+
+def build():
+    text = build_text()
     OUT.write_text(text, encoding="utf-8")
     print(len(text.splitlines()), "lines", len(text) // 1024, "KB")
 

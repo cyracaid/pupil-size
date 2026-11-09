@@ -31,7 +31,9 @@ files), so they are not shipped here:
 | `example_kret_pipeline.m` | runs the pupil-size model: filter → interpolate → segment → statistics → QC → export |
 | `ymtcTrialQC.m` | the analysis plan's three rejection rules |
 | `ymtcMergeResults.m` | event row + four segments → `06_merged/06_all_merged.csv` (69 columns) |
-| `ymtcManipulationCheck.m`, `ymtcLayer1Bins.m`, `ymtc_param_sensitivity.m` | analysis-side scripts, not part of the data pipeline |
+| `ymtcManipulationCheck.m` | joins the rows of one trial (a segment's statistics sit on its own start-marker row) and runs the manipulation check; runs, but its numbers are not recorded in this documentation |
+| `ymtcFilterPlots.m` | filter diagnostics for one recording: raw samples, what each filter rejected, the trend line; writes PNG |
+| `ymtcLayer1Bins.m`, `ymtc_param_sensitivity.m` | analysis-side scripts, not part of the data pipeline |
 
 If you need them, they belong with the data, not here: they encode this study's folder
 layout and its analysis decisions.
