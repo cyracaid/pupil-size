@@ -35,6 +35,11 @@ baseline is handled by the analysis, not by dropping the trial.
 49.2% is over all 504 trials. Over the five participants that had events before sub149 was
 added it is 248/420 = 59% — the number quoted in older notes.
 
+Read the pooled rate with the shape of the table in mind: the six subject-level rates are
+bimodal, 0 / 6.0 / 14.3 / 82.1 / 92.9 / 100 (median 48.2%), not a cloud around 49%. Any
+sentence of the form "we lost about half the trials" describes the pooled number and hides
+that half the subjects lost almost nothing.
+
 The flag-only rule is large too: `preOutcome` is mostly missing in **227/504 (45%)** of trials.
 Those trials stay in the table with `PreOutcomeMostlyMissing = true`; their preOutcome value
 should not be used as a GLM modulator.
@@ -72,8 +77,12 @@ Mean `SmoothSig_missingDataPercent` per segment, by subject:
 
 Three patterns worth noting:
 
-- **Countdown is usually the worst segment** (sub119, sub140, sub141, sub149). It is also the
-  longest — 13–31 s — so it accumulates more chances to lose the pupil.
+- **Countdown is usually the worst segment** (sub119, sub140, sub141, sub149). It is also by
+  far the longest: the design sets the countdown at 7.5–30 s and the segment starts at the cue,
+  so it spans 8.5–31 s end to end — an order of magnitude more exposure than the other three,
+  and therefore more chances to lose the pupil. The observed per-subject range is in
+  `05_all_trials_wide.csv` (`countdown_s`); if it is narrower than the design range, that is
+  worth explaining rather than ignoring.
 - **sub139 is 100% everywhere**: the recording has essentially no valid pupil. This is a
   recording problem, not a threshold problem; no cut-off can rescue it.
 - **sub134 is the only subject where the later segments are cleaner than the baseline**, which
@@ -101,3 +110,18 @@ For a methods section, four numbers suffice:
 
 Nothing above should be described as "cleaning": no trial was repaired, values were not
 imputed, and the rejected trials remain in `04_all_trials_qc.csv` with their flags.
+
+## 7. What three analysed subjects can and cannot carry
+
+The three exclusions leave **three** participants with usable data. That is a result about the
+dataset, not a processing artefact, and it decides what the analysis may claim:
+
+- **within-subject contrasts still work** (condition × segment, per subject), and they are the
+  only thing the design was powered for;
+- **between-subject or group-level statements do not** — n = 3, and those three are exactly the
+  three cleanest recordings of the nine: the analysed set is not a random sample, and the
+  exclusion is not independent of the data it leaves behind;
+- **a null effect is uninformative**: with this much missing data the confidence interval on any
+  condition difference will be wide, so report the interval, not just the p-value;
+- the honest sentence for a limitations paragraph is about *attrition and recording quality*,
+  quoting §1–§4, not about "outlier removal" — nothing was removed as an outlier.
