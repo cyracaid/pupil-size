@@ -26,3 +26,5 @@ ZH: 从这里开始。`01` 一页看懂流水线，`02` 列字典，`03` 瞳孔�
 Every page states the commit it was written against. `checkDocs.m` compares the column
 names listed in `02` with the header of every output CSV, so a pipeline change that adds or
 drops a column fails the check instead of silently ageing the documentation.
+
+The site at <https://cyracaid.github.io/pupil-size/> is built from this folder by `.github/workflows/pages.yml` on every push that touches `docs/` or `tools/`.
