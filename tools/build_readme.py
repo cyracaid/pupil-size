@@ -433,26 +433,26 @@ def trouble_table(lang):
 # ---------------------------------------------------------------------------
 FLOW = {
     "en": """```
-01 raw trk    (01_原始trk/*.trk)      the recording date lives in these names; never renamed
+01 raw trk    (01_raw_trk/*.trk)      the recording date lives in these names; never renamed
       │  trk2csv_batch
       ▼
-02 samples    (02_样本/subNNN_*.csv, 21 cols) + 02_all_qc_summary.csv + 02_all_issues.csv
+02 samples    (02_samples/subNNN_*.csv, 21 cols) + 02_all_qc_summary.csv + 02_all_issues.csv
       │
-      ├──▶ 03 events      (03_事件/subNNN_events.csv)
+      ├──▶ 03 events      (03_events/subNNN_events.csv)
       │        │  ymtcEventTable (+ TrialOrder-HK/*.xlsx)
       │        ▼
-      │   05 markers     (05_marker表/05_all_markers.csv, 18 cols) · 05_all_markers_5step.csv
+      │   05 markers     (05_markers/05_all_markers.csv, 18 cols) · 05_all_markers_5step.csv
       │        ├ ymtcTrialWide    → 05_all_trials_wide.csv (14)
       │        └ ymtcTimingCheck  → 05_all_timing_check.csv (7)
       │
-      └──▶ 04 pupil       (04_瞳孔指标/) csv2kretmat → .mat → PupilDataModel
+      └──▶ 04 pupil       (04_pupil/) csv2kretmat → .mat → PupilDataModel
                │  04_all_segments.csv (16) · 04_all_trials_qc.csv (19) · 04_all_subjects_qc.csv (5)
                │  segments/subNNN_leftpupil_segments.csv
                ▼
-         06 merged      (06_合并表/06_all_merged.csv, 69 cols) = 05 markers + 4 segments x 12 stats + 3 QC flags
+         06 merged      (06_merged/06_all_merged.csv, 69 cols) = 05 markers + 4 segments x 12 stats + 3 QC flags
 
 side check, feeds nothing downstream:
-     03 events ──ymtcRunCheck──▶ 07 checks  (07_检查/07_all_run_check.csv, 9)
+     03 events ──ymtcRunCheck──▶ 07 checks  (07_checks/07_all_run_check.csv, 9)
 ```
 
 Two branches leave 02 — 03 (events) and 04 (pupil metrics) — and neither depends on the other.
@@ -483,12 +483,12 @@ Two branches leave 02 — 03 (events) and 04 (pupil metrics) — and neither dep
 02에서 두 갈래(03 이벤트 / 04 눈동자 지표)로 나뉘고, 03이 05를 만들며,
 04와 05가 06에서 합쳐진다. 07은 03만 검사한다.""",
     "zh": """```
-01 原始 trk      01_原始trk/*.trk              录制日期在文件名里，永不改名
+01 原始 trk      01_raw_trk/*.trk              录制日期在文件名里，永不改名
       │  trk2csv_batch
       ▼
-02 样本          02_样本/subNNN_*.csv（21 列）+ 02_all_qc_summary.csv + 02_all_issues.csv
+02 样本          02_samples/subNNN_*.csv（21 列）+ 02_all_qc_summary.csv + 02_all_issues.csv
       │
-      ├──▶ 03 事件      03_事件/subNNN_events.csv
+      ├──▶ 03 事件      03_events/subNNN_events.csv
       │        │  ymtcEventTable（+ TrialOrder-HK/*.xlsx）
       │        ▼
       │   05 marker 表  05_all_markers.csv（18 列）· 05_all_markers_5step.csv
@@ -689,20 +689,20 @@ PROSE = {
 }
 
 TABLE_LIST = [
-    ("per-sample CSV", "02_样本/<name>.csv", "1 / sample", 21, "trk2csv [ymtc]"),
-    ("QC summary", "02_样本/02_all_qc_summary.csv", "1 / file", 25, "trk2csv_batch [ymtc]"),
-    ("issues", "02_样本/02_all_issues.csv", "1 / anomaly", 5, "trk2csv_batch [ymtc]"),
-    ("events", "03_事件/<sub>_events.csv", "1 / event", 3, "event extraction"),
-    ("event table", "05_marker表/05_<sub>_markers[_5step].csv", "1 / marker (624 · 372)", 18, "ymtcEventTable [ymtc]"),
-    ("event summary", "05_marker表/05_all_markers_summary.csv", "1 / subject", 6, "ymtcEventTableBatch [ymtc]"),
-    ("trials wide", "05_marker表/05_all_trials_wide.csv", "1 / trial", 14, "ymtcTrialWide [ymtc]"),
-    ("timing check", "05_marker表/05_all_timing_check.csv", "1 / subject × marker", 7, "ymtcTimingCheck [ymtc]"),
-    ("run check", "07_检查/07_all_run_check.csv", "1 / subject", 9, "ymtcRunCheck [ymtc]"),
-    ("Kret results", "04_瞳孔指标/04_all_segments.csv", "1 / trial × segment", 16, "analyzeSegments [Kret code]"),
-    ("trial QC", "04_瞳孔指标/04_all_trials_qc.csv", "1 / trial × segment", 19, "Kret pipeline script"),
-    ("subject QC", "04_瞳孔指标/04_all_subjects_qc.csv", "1 / subject", 5, "Kret pipeline script"),
-    ("segment curves", "04_瞳孔指标/segments/<name>_leftpupil_segments.csv", "1 / 1000 Hz sample", 7, "exportSegments [Kret code]"),
-    ("final", "06_合并表/06_<sub>_merged.csv, 06_all_merged.csv", "1 / marker", 69, "ymtcMergeResults [ymtc]"),
+    ("per-sample CSV", "02_samples/<name>.csv", "1 / sample", 21, "trk2csv [ymtc]"),
+    ("QC summary", "02_samples/02_all_qc_summary.csv", "1 / file", 25, "trk2csv_batch [ymtc]"),
+    ("issues", "02_samples/02_all_issues.csv", "1 / anomaly", 5, "trk2csv_batch [ymtc]"),
+    ("events", "03_events/<sub>_events.csv", "1 / event", 3, "event extraction"),
+    ("event table", "05_markers/05_<sub>_markers[_5step].csv", "1 / marker (624 · 372)", 18, "ymtcEventTable [ymtc]"),
+    ("event summary", "05_markers/05_all_markers_summary.csv", "1 / subject", 6, "ymtcEventTableBatch [ymtc]"),
+    ("trials wide", "05_markers/05_all_trials_wide.csv", "1 / trial", 14, "ymtcTrialWide [ymtc]"),
+    ("timing check", "05_markers/05_all_timing_check.csv", "1 / subject × marker", 7, "ymtcTimingCheck [ymtc]"),
+    ("run check", "07_checks/07_all_run_check.csv", "1 / subject", 9, "ymtcRunCheck [ymtc]"),
+    ("Kret results", "04_pupil/04_all_segments.csv", "1 / trial × segment", 16, "analyzeSegments [Kret code]"),
+    ("trial QC", "04_pupil/04_all_trials_qc.csv", "1 / trial × segment", 19, "Kret pipeline script"),
+    ("subject QC", "04_pupil/04_all_subjects_qc.csv", "1 / subject", 5, "Kret pipeline script"),
+    ("segment curves", "04_pupil/segments/<name>_leftpupil_segments.csv", "1 / 1000 Hz sample", 7, "exportSegments [Kret code]"),
+    ("final", "06_merged/06_<sub>_merged.csv, 06_all_merged.csv", "1 / marker", 69, "ymtcMergeResults [ymtc]"),
 ]
 
 METHODS = [

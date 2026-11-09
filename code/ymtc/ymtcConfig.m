@@ -13,24 +13,24 @@ function C = ymtcConfig()
 %
 % Fields
 %   root      project folder that holds the numbered folders
-%   eventDir  03_事件/                one csv per subject with the trk events
-%   outDir    05_marker表/           ymtcEventTable output
+%   eventDir  03_events/                one csv per subject with the trk events
+%   outDir    05_markers/           ymtcEventTable output
 %   orderDir  TrialOrder-HK/          the task's trial order workbooks
-%   qcDir     07_检查/                ymtcRunCheck output
-%   pupilDir  04_瞳孔指标/            Kret pipeline output
-%   mergeDir  06_合并表/              ymtcMergeResults output
+%   qcDir     07_checks/                ymtcRunCheck output
+%   pupilDir  04_pupil/            Kret pipeline output
+%   mergeDir  06_merged/              ymtcMergeResults output
 
 here = fileparts(mfilename('fullpath'));   % 代码_matlab/
 root = fileparts(here);                    % project folder
 
 C = struct();
 C.root     = root;
-C.eventDir = fullfile(root, '03_事件');
-C.outDir   = fullfile(root, '05_marker表');
+C.eventDir = fullfile(root, '03_events');
+C.outDir   = fullfile(root, '05_markers');
 C.orderDir = fullfile(root, 'TrialOrder-HK');
-C.qcDir    = fullfile(root, '07_检查');
-C.pupilDir = fullfile(root, '04_瞳孔指标');
-C.mergeDir = fullfile(root, '06_合并表');
+C.qcDir    = fullfile(root, '07_checks');
+C.pupilDir = fullfile(root, '04_pupil');
+C.mergeDir = fullfile(root, '06_merged');
 
 % Optional private override: a file the user creates and keeps out of git.
 overrideFile = fullfile(here, 'ymtc_config.m');

@@ -23,7 +23,7 @@ trk2csv.m                    entry: one .trk
 trk2csv_batch.m              loop over a folder, collect qc summary and issues
 
 ymtcEventTable.m             entry: one subject's marker table
-  +- reads 03_事件/<sub>_events.csv
+  +- reads 03_events/<sub>_events.csv
   +- readOrder() (subfunction at the end of the file) reads TrialOrder-HK/*.xlsx
   +- picks the trial order by matching countdown lengths, then writes the table in marker order
 ymtcEventTableBatch.m        loop over subjects, plus a summary and a combined table
@@ -56,7 +56,7 @@ trk2csv_batch.m        a folder of .trk -> <folder>/csv, plus qc summary and iss
 private/               reader, event attachment, checks (not called directly)
 tests/                 simulated .trk files, runtests('tests')
 
-ymtcEventTable.m       one subject -> 05_marker表/05_<sub>_markers.csv
+ymtcEventTable.m       one subject -> 05_markers/05_<sub>_markers.csv
 ymtcEventTableBatch.m  every subject in one go, plus a summary and a combined table
 ymtcRunCheck.m         is every run really 21 trials? (uses BurnInStart, not START)
 
@@ -121,10 +121,10 @@ is git-ignored, so machine paths never enter the repository.
 
 | field | default | holds |
 |---|---|---|
-| `eventDir` | `03_事件/` | `<sub>_events.csv`, `participant,time_ms,event` (one row per event) |
+| `eventDir` | `03_events/` | `<sub>_events.csv`, `participant,time_ms,event` (one row per event) |
 | `orderDir` | `TrialOrder-HK/` | `TrialOrder<order>Run<run>.xlsx`, names / onsets / durations |
-| `outDir` | `05_marker表/` | output folder, created if missing |
-| `qcDir` | `07_检查/` | `ymtcRunCheck` output |
+| `outDir` | `05_markers/` | output folder, created if missing |
+| `qcDir` | `07_checks/` | `ymtcRunCheck` output |
 
 ```matlab
 C = ymtcConfig()                       % see what is being used

@@ -9,13 +9,13 @@ Applies to: `code/ymtc@e574fce` + `pupil-size@645cbc6`. If a table gains a colum
 The tables, and how they relate:
 
 ```
-.trk ──trk2csv──> 02_样本/*.csv ──csv2kretmat + example_kret_pipeline──> 04_瞳孔指标/
+.trk ──trk2csv──> 02_samples/*.csv ──csv2kretmat + example_kret_pipeline──> 04_pupil/
                         │                                                       04_all_segments.csv (16 cols)
-                        └──ymtcEventTable──> 05_marker表/*_event_table.csv (18 cols)
+                        └──ymtcEventTable──> 05_markers/*_event_table.csv (18 cols)
                                                     │
                                                     ├── ymtcTrialWide ──> 05_all_trials_wide.csv (14 cols)
                                                     ├── ymtcTimingCheck ─> 05_all_timing_check.csv (7 cols)
-                                                    └── ymtcMergeResults ─> 06_合并表/06_all_merged.csv (69 cols)
+                                                    └── ymtcMergeResults ─> 06_merged/06_all_merged.csv (69 cols)
 ```
 
 ---
@@ -152,7 +152,7 @@ One row per subject; guards the `run = ceil(trial/21)` assumption.
 | `runAssignmentOK` | true when every run has 21 trials and the counts agree |
 | `note` | what is wrong, in plain words |
 
-## H. The merged final table — `06_合并表/06_all_merged.csv` (69 columns)
+## H. The merged final table — `06_merged/06_all_merged.csv` (69 columns)
 
 One row per marker, carrying the pupil statistics of all four segments on the same row:
 

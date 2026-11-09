@@ -11,7 +11,7 @@ function S = ymtcTimingCheck(csvFile)
 % Nothing is tested, nothing is corrected. A marker without a trk time
 % (diff_s = NaN) is dropped and counted, not filled in.
 %
-% Writes 05_marker表/05_all_timing_check.csv, the same table that is printed.
+% Writes 05_markers/05_all_timing_check.csv, the same table that is printed.
 
 arguments
     csvFile (1,1) string = ""

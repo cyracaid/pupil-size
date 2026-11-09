@@ -18,7 +18,7 @@ function S = ymtcRunCheck(options)
 %
 % Prints, per subject: how many START / BurnInStart / BurnOutStart / CueStart
 % events there are, the trials per run, the START -> BurnInStart gaps, and a
-% verdict. Writes 07_检查/07_all_run_check.csv. Nothing is repaired.
+% verdict. Writes 07_checks/07_all_run_check.csv. Nothing is repaired.
 
 arguments
     options.Subjects (1,:) string = ["sub119" "sub124" "sub128" "sub134" ...
@@ -36,7 +36,7 @@ for s = options.Subjects
     f = fullfile(evDir, s + "_events.csv");
     if ~isfile(f)
         fprintf('[skip] %s: no event timeline\n', s);
-        rows(end+1, :) = {s, "no_file", 0, 0, 0, 0, "", false, "no 03_事件 csv"}; %#ok<AGROW>
+        rows(end+1, :) = {s, "no_file", 0, 0, 0, 0, "", false, "no 03_events csv"}; %#ok<AGROW>
         continue
     end
 

@@ -8,9 +8,9 @@ function T = ymtcEventTable(subId, options)
 %   T = ymtcEventTable('sub149', 'Order', 4);   % force the trial order
 %   T = ymtcEventTable('sub149', 'NoiseParts', false);   % 4-5 rows per trial
 %
-% Input : 03_事件/<subId>_events.csv   (trk markers: participant,time_ms,event)
+% Input : 03_events/<subId>_events.csv   (trk markers: participant,time_ms,event)
 %         TrialOrder-HK/TrialOrder<o>Run<r>.xlsx   (the task's marker names/onsets/durations)
-% Output: 05_marker表/05_<subId>_markers.csv, one row per marker, in time order:
+% Output: 05_markers/05_<subId>_markers.csv, one row per marker, in time order:
 %         Onset<cond> > PredictableTime...(countdown) > Outcome<cond> > WhiteNoise > Rating
 %         With 'NoiseParts', false the file is 05_<subId>_markers_5step.csv instead
 %         (no WhiteNoise_part2-4 rows, 4-5 rows per trial).

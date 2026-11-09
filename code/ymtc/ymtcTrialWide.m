@@ -7,7 +7,7 @@ function W = ymtcTrialWide(inFile, outFile)
 % Input : the long table written by ymtcEventTable / ymtcEventTableBatch
 %         (one row per marker). The 5-step and the full version both work;
 %         noise parts and run-level rows are dropped here.
-% Output: 05_marker表/05_all_trials_wide.csv, one row per trial:
+% Output: 05_markers/05_all_trials_wide.csv, one row per trial:
 %   participant, order, run, trial, condition, timing, certainty, outcome,
 %   onset_s, countdown_s, outcome_s, whitenoise_s, rating_s, has_rating
 %

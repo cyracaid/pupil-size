@@ -1,8 +1,8 @@
 # pupil-size · YMTC
 
-EN: Turn MRC eye-tracker logs into one analysis table: `.trk` -> per-sample CSV -> event markers -> pupil metrics -> merged table.
-KO: MRC 시선추적 로그를 하나의 분석 표로: `.trk` -> 샘플 CSV -> 마커 -> 눈동자 지표 -> 병합표.
-ZH: 把 MRC 眼动仪日志变成一张分析表：`.trk` → 逐样本 CSV → 事件 marker → 瞳孔指标 → 合并表。
+Turn MRC eye-tracker logs into one analysis table: `.trk` -> per-sample CSV -> event markers -> pupil metrics -> merged table.
+
+The documentation site is trilingual; this README is English only.
 
 **[Documentation site](https://cyracaid.github.io/pupil-size/)** · [English](https://cyracaid.github.io/pupil-size/index.html) · [한국어](https://cyracaid.github.io/pupil-size/index.ko.html) · [中文](https://cyracaid.github.io/pupil-size/index.zh.html)
 · [Reference: every column](https://cyracaid.github.io/pupil-size/reference.html)

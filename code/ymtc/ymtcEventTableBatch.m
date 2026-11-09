@@ -10,13 +10,13 @@ function S = ymtcEventTableBatch(options)
 %   S = ymtcEventTableBatch('NoiseParts', false);   % 5 rows per trial, own file names
 %
 % This is only a loop around ymtcEventTable.m; the per-subject rules are there.
-% For every subject the single input is 03_事件/<sub>_events.csv:
+% For every subject the single input is 03_events/<sub>_events.csv:
 %   file missing      -> status "skipped_no_file",   nothing is attempted
 %   no CueStart rows  -> status "skipped_no_events", the trk has no trial markers
 %   function fails    -> status "error",             the batch keeps going
-%   otherwise         -> status "ok" and 05_marker表/05_<sub>_markers.csv
+%   otherwise         -> status "ok" and 05_markers/05_<sub>_markers.csv
 %
-% Output (in 05_marker表/):
+% Output (in 05_markers/):
 %   05_<sub>_markers.csv            from ymtcEventTable.m, one per subject that ran
 %   05_all_markers.csv              the same rows stacked, all subjects
 %   05_all_markers_summary.csv      one row per subject: status, chosen order,
@@ -49,7 +49,7 @@ for s = options.Subjects
     if ~isfile(evFile)
         fprintf('[skip] %s: %s not found\n', s, evFile);
         summary(end+1, :) = {s, "skipped_no_file", NaN, 0, 0, ...
-                             "no 03_事件 csv"}; %#ok<AGROW>
+                             "no 03_events csv"}; %#ok<AGROW>
         continue
     end
 
