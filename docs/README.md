@@ -19,13 +19,21 @@ ZH: 从这里开始。`01` 一页看懂流水线，`02` 列字典，`03` 瞳孔�
 
 1. You have a number and want to know what it is → `02`, find the column name.
 2. You have a column and want to know how it was computed → `02` gives the formula and the
-   file; `03` (once written) gives the algorithm behind it.
+   file; `03` gives the algorithm behind it.
 3. You want to know where a file comes from → the diagram at the top of `02`.
+4. You want the per-column detail of a *sampling-level* table (the 21-column sample CSV, the QC
+   and issues tables) → [the reference page](https://cyracaid.github.io/pupil-size/reference.html);
+   `02` deliberately covers the analysis tables only.
 
 ## Keeping this honest
 
-Every page states the commit it was written against. `checkDocs.m` compares the column
-names listed in `02` with the header of every output CSV, so a pipeline change that adds or
-drops a column fails the check instead of silently ageing the documentation.
+`checkDocs.m` carries its **own** list of expected columns and compares it with the header of
+every output CSV. Note what that does and does not buy you: the list lives in the `.m` file, not
+in `02`. If a table gains a column and `checkDocs.m` is updated but this folder is not, the check
+passes and `02` silently ages. So a table change means three edits in one commit — the pipeline,
+`checkDocs.m`, and `02` — and the check only enforces the first two.
+
+`02` and `03` state the commit they were verified against; pages 01, 04, 05 and 06 are about
+whatever `HEAD` of this branch is. Last full verification: 2026-11-09, `e1b0aa0`.
 
 The site at <https://cyracaid.github.io/pupil-size/> is built from this folder by `.github/workflows/pages.yml` on every push that touches `docs/` or `tools/`.

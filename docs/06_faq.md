@@ -1,8 +1,8 @@
 # 06 · FAQ — the traps that bite most often
 
-EN: Six questions that come up every time someone touches these tables.
-KO: 이 표를 다룰 때마다 나오는 여섯 가지 질문.
-ZH: 每次动这些表都会遇到的六个问题。
+EN: Seven questions that come up every time someone touches these tables.
+KO: 이 표를 다룰 때마다 나오는 일곱 가지 질문.
+ZH: 每次动这些表都会遇到的七个问题。
 
 **Q1. Why is `ValidSamples_validPercent` the same on every row of a subject?**
 Because it is not per segment. It is the share of the whole recording that passed the

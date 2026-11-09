@@ -1,8 +1,8 @@
 function ok = checkDocs(root)
-%CHECKDOCS Compare the column dictionary with the real header of every output table.
-% EN: Fails loudly when a table gains or loses a column that docs/02 does not list.
-% KO: 표에 열이 추가되거나 빠졌는데 docs/02 에 없으면 실패한다.
-% ZH: 表里多一列少一列而 docs/02 没写，就报错。
+%CHECKDOCS Compare the expected column list with the real header of every output table.
+% EN: Fails when a table gains or loses a column that this file's expectation list does not have.
+% KO: 표에 열이 추가되거나 빠졌는데 이 파일의 기대 목록에 없으면 실패한다.
+% ZH: 表里多一列少一列而本文件的期望清单里没有，就报错。
 %
 %   ok = checkDocs();          % uses ymtcConfig's root
 %   ok = checkDocs('/path/to/project');
@@ -19,7 +19,12 @@ if root == ""
     root = C.root;
 end
 
-%% Expected columns, straight from docs/02_column_dictionary.md
+%% Expected columns.
+% This list is maintained BY HAND alongside docs/02_column_dictionary.md. It is
+% deliberately a copy and not a parser: reading the markdown would make a typo in
+% the prose a false alarm. The price is that the checker cannot see this page
+% falling behind - updating one without the other is a silent failure. Change
+% the pipeline, this list, and docs/02 in the same commit.
 
 ev = ["participant","order","run","trial","trial_in_run","ymtc_marker","trk_event", ...
       "time_ms","t_from_onset_s","expected_from_onset_s","diff_s","expected_duration_s", ...

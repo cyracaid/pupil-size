@@ -1,10 +1,16 @@
 # 02 · Column dictionary
 
-EN: Every column of every output table: what it means, how it is computed, its unit, and where it comes from.
-KO: 모든 출력 표의 모든 열: 의미, 계산 방법, 단위, 출처.
-ZH: 所有输出表的每一列：含义、怎么算、单位、从哪儿来。
+EN: Every column of the analysis tables: what it means, how it is computed, its unit, and where it comes from.
+KO: 분석 표의 모든 열: 의미, 계산 방법, 단위, 출처.
+ZH: 分析用表的每一列：含义、怎么算、单位、从哪儿来。
 
-Applies to: `code/ymtc@e574fce` + `pupil-size@645cbc6`. If a table gains a column, update this page in the same commit.
+Verified against `ymtc-trk2csv@e1b0aa0` (2026-11-09; contains the `code/ymtc` of `e574fce` and upstream
+`pupil-size@645cbc6`, whose pupil parameters are unchanged since). If a table gains a column, update this
+page in the same commit.
+
+Scope: the eight tables an analysis touches (§A–§H). The sampling-level tables — the 21-column
+`02_samples/*.csv`, `02_all_qc_summary.csv`, `02_all_issues.csv` — are documented on the
+[reference page](https://cyracaid.github.io/pupil-size/reference.html), not here.
 
 The tables, and how they relate:
 
@@ -20,10 +26,12 @@ The tables, and how they relate:
 
 ---
 
-## A. Event table — `<sub>_markers.csv` / `05_all_markers_5step.csv` (18 columns)
+## A. Event table — `05_<sub>_markers.csv` / `05_all_markers.csv` (18 columns)
 
 One row per marker. In the 5-step version each trial has 4–5 rows; the full version adds
-`WhiteNoise_part2-4`.
+`WhiteNoise_part2-4`. The per-subject names are `05_<sub>_markers.csv` and
+`05_<sub>_markers_5step.csv`; the stacked versions are `05_all_markers.csv` and
+`05_all_markers_5step.csv` (`ymtcEventTable.m` / `ymtcEventTableBatch.m`).
 
 | column | meaning | how | unit |
 |---|---|---|---|
@@ -177,5 +185,8 @@ The segment columns are the §B names with the segment as a prefix, e.g.
 
 ## J. Check this page against the data
 
-`checkDocs.m` reads the column names listed here and compares them with the header of every
-output CSV; a missing or extra column fails the check. Run it after every pipeline run.
+`checkDocs.m` compares the header of every output CSV with an expected column list **that is
+written inside `checkDocs.m`**, not with this page. It therefore catches "the pipeline changed"
+but not "this page was left behind": if you update `checkDocs.m` without updating §A–§H, the check
+still passes. Treat the two as one edit — table, `checkDocs.m`, this page — and run `checkDocs` after
+every pipeline run.

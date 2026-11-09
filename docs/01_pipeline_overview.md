@@ -15,18 +15,18 @@ ZH: 从眼动仪日志到分析表的五层，以及每层交给下一层什么�
 04_pupil/                         05_markers/05_all_markers*.csv   one row per marker
   *.mat (Kret format)                        │
         │  example_kret_pipeline.m           │  ymtcTrialWide.m   → 05_all_trials_wide.csv
-        ▼                                    │  ymtcTimingCheck.m → 05_all_05_all_timing_check.csv
+        ▼                                    │  ymtcTimingCheck.m → 05_all_timing_check.csv
 04_pupil/                                 │
   04_all_segments.csv (segment stats)       │
-  04_all_04_all_trials_qc.csv (reject flags)       │
-  04_all_04_all_subjects_qc.csv (per subject)      │
+  04_all_trials_qc.csv (reject flags)       │
+  04_all_subjects_qc.csv (per subject)      │
         └──────────────┬─────────────────────┘
                        │  ymtcMergeResults.m
                        ▼
 06_merged/06_all_merged.csv          69 columns: event row + 4 segments x 12 stats + 3 QC flags
 
 side check, feeds nothing downstream:
-  03_events/subNNN_events.csv ──ymtcRunCheck──▶ 07_checks/07_all_07_all_run_check.csv
+  03_events/subNNN_events.csv ──ymtcRunCheck──▶ 07_checks/07_all_run_check.csv
 ```
 
 ## Layer 1 — the recording
