@@ -171,6 +171,23 @@ One row per marker. **The statistics of a segment sit on the row of that segment
 The segment columns are the §B names with the segment as a prefix, e.g.
 `countdown_SmoothSig_meanDiam`, `preOutcome_ValidSamples_sampleCount`.
 
+### Which event rows survive the merge
+
+The join key is `participant` + `run` + `trial`, and a run-level row (`START`,
+`BurnInStart`, `BurnOutStart`) has no `trial` at all — it can only be carried with empty
+statistics, never joined. So the row count tells you which merge you are looking at:
+
+| rows per subject | what it means |
+|---|---|
+| 372 (= 12 run-level + 360 trial-level) | every event row is kept; the 12 run-level rows carry NaN in all 48 segment columns |
+| 360 | the merge drops run-level rows |
+
+`06_all_merged.csv` cannot tell you which one it is, so count it once
+(`wc -l`, minus the header) and write the answer here. The same question applies to
+`WhiteNoise_part2-4`: those 252 rows exist only in the *full* marker table, so if the merge
+reads the 5-step table they cannot appear at all. `ymtcMergeResults.m` lives with the data
+(docs/04), which is why this page states the expected shape and not the measured one.
+
 ## I. Marker ↔ trk event mapping
 
 | trk event | marker step | notes |

@@ -41,6 +41,9 @@ invented to fill them.
 ---
 
 **Q7. Can I re-run one subject without touching the others?**
-`ymtcEventTableBatch('Subjects', "sub149")` does exactly that; it overwrites only that
-subject's file, plus the summary and combined tables. Point it at a scratch folder via
-`ymtc_config.m` if you want to experiment without touching the real outputs.
+`ymtcEventTableBatch('Subjects', "sub149")` rebuilds that subject and updates the summary,
+but look at what the *combined* table becomes: `05_all_markers.csv` is rewritten from the
+subjects in that one call, so after a single-subject run it contains that subject only. If the
+output folder is the real one, pass `'WriteCombined', false` and merge the combined table by
+hand — or run the batch without `Subjects`. Point it at a scratch folder via `ymtc_config.m`
+if you want to experiment without touching the real outputs at all.
