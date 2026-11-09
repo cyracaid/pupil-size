@@ -146,6 +146,38 @@ CONTENT = {
                       "<code>(flag only)</code>，防止读者误以为它会剔除数据。</p>"),
             (114, 114, "结束函数。</p>"),
         ],
+        "data": """
+<p>这张表就是 <code>04_pupil/04_all_segments.csv</code>。<b>它不是“一行一个 trial”，是“一行一个段”</b>，
+而一个 trial 有 <b>四个段</b>：</p>
+<table>
+<tr><th>segmentType</th><th>行数</th><th>这个函数怎么处理</th></tr>
+<tr><td><code>baseline</code></td><td>504</td><td>不参与任何规则，两列标记永远是 false</td></tr>
+<tr><td><code>countdown</code></td><td>504</td><td><b>R1</b> 在这里判 → <code>RejectCountdown</code></td></tr>
+<tr><td><code>preOutcome</code></td><td>504</td><td><b>R2</b> 在这里判 → <code>PreOutcomeMostlyMissing</code>（只标记）</td></tr>
+<tr><td><code>postOutcome</code></td><td>504</td><td>不参与任何规则</td></tr>
+</table>
+<p>504 = 6 个被试 × 84 个 trial。整张表 2016 行。</p>
+
+<p><b>三个由此产生的坑：</b></p>
+<ol>
+<li><b>别按行数算剔除率。</b> 一个 trial 有 4 行，按行数算会把分母放大 4 倍。要么只看 countdown 行，
+要么先按 <code>participant + trial</code> 去重。函数里的 R3 正是只取 <code>isCountdown</code> 行来数的。</li>
+<li><b><code>baseline</code> 和 <code>postOutcome</code> 行的两列标记永远是 false</b>，因为它们不进入 R1/R2。
+如果你是“筛掉所有被标记的行”这种写法，这两类行会全部留下——过滤时要按 <code>segmentType</code>，
+而不是只看标记列。</li>
+<li><b><code>SubjectExcluded</code> 是广播的</b>：某个被试被排除后，他名下四类段的所有行都会变成 true。</li>
+</ol>
+
+<p><b>拿到 <code>qcTable</code> 之后，分析里应该这么用：</b></p>
+<pre><code>% 只保留：这个试次没被剔、被试也没被排除
+keep = ~q &amp;&amp; ~qcTable.SubjectExcluded;
+
+% 更稳妥：先在 trial 层面汇总一次，再去 join 回瞳孔数据
+trialQc = groupsummary(qcTable, ["participant","trial"], ...
+    "max", ["RejectCountdown","PreOutcomeMostlyMissing","SubjectExcluded"]);</code></pre>
+<p><code>PreOutcomeMostlyMissing</code> 别拿来删数据：它标的是“这个 trial 的 preOutcome 值不可信”，
+在 Layer-2 GLM 里当调节变量时要谨慎，或做敏感性分析。</p>
+""",
     },
 
     "Contents.m": {

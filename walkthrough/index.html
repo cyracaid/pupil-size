@@ -50,6 +50,12 @@ main{flex:1;min-width:0;padding:24px 40px 120px;max-width:1040px}
 details.full{margin:26px 0 40px}
 details.full summary{cursor:pointer;color:var(--dim);font-size:14px}
 .rtip{margin:0}
+.datawalk{margin:26px 0 8px;padding:16px 20px;background:#eef4ee;border:1px solid #d3e2d3;
+ border-radius:12px}
+.datawalk h3{margin:0 0 8px;font-size:16px;color:#2f6f4f}
+.datawalk table{border-collapse:collapse;margin:8px 0;font-size:14px}
+.datawalk th,.datawalk td{border:1px solid #cfe0cf;padding:4px 10px;text-align:left}
+.datawalk th{background:#e3eee3}
 footer{color:var(--dim);font-size:13px;padding:0 40px 60px}
 @media(max-width:860px){nav{display:none}main{padding:16px 18px 80px}header{padding:20px}}
 </style></head><body>
@@ -1660,6 +1666,38 @@ footer{color:var(--dim);font-size:13px;padding:0 40px 60px}
 <tr><td class="ln">114</td><td class="src">end</td></tr>
 </table></div>
 <div class="note">结束函数。</p></div>
+<div class="datawalk"><h3>落到你的数据上</h3>
+<p>这张表就是 <code>04_pupil/04_all_segments.csv</code>。<b>它不是“一行一个 trial”，是“一行一个段”</b>，
+而一个 trial 有 <b>四个段</b>：</p>
+<table>
+<tr><th>segmentType</th><th>行数</th><th>这个函数怎么处理</th></tr>
+<tr><td><code>baseline</code></td><td>504</td><td>不参与任何规则，两列标记永远是 false</td></tr>
+<tr><td><code>countdown</code></td><td>504</td><td><b>R1</b> 在这里判 → <code>RejectCountdown</code></td></tr>
+<tr><td><code>preOutcome</code></td><td>504</td><td><b>R2</b> 在这里判 → <code>PreOutcomeMostlyMissing</code>（只标记）</td></tr>
+<tr><td><code>postOutcome</code></td><td>504</td><td>不参与任何规则</td></tr>
+</table>
+<p>504 = 6 个被试 × 84 个 trial。整张表 2016 行。</p>
+
+<p><b>三个由此产生的坑：</b></p>
+<ol>
+<li><b>别按行数算剔除率。</b> 一个 trial 有 4 行，按行数算会把分母放大 4 倍。要么只看 countdown 行，
+要么先按 <code>participant + trial</code> 去重。函数里的 R3 正是只取 <code>isCountdown</code> 行来数的。</li>
+<li><b><code>baseline</code> 和 <code>postOutcome</code> 行的两列标记永远是 false</b>，因为它们不进入 R1/R2。
+如果你是“筛掉所有被标记的行”这种写法，这两类行会全部留下——过滤时要按 <code>segmentType</code>，
+而不是只看标记列。</li>
+<li><b><code>SubjectExcluded</code> 是广播的</b>：某个被试被排除后，他名下四类段的所有行都会变成 true。</li>
+</ol>
+
+<p><b>拿到 <code>qcTable</code> 之后，分析里应该这么用：</b></p>
+<pre><code>% 只保留：这个试次没被剔、被试也没被排除
+keep = ~q &amp;&amp; ~qcTable.SubjectExcluded;
+
+% 更稳妥：先在 trial 层面汇总一次，再去 join 回瞳孔数据
+trialQc = groupsummary(qcTable, ["participant","trial"], ...
+    "max", ["RejectCountdown","PreOutcomeMostlyMissing","SubjectExcluded"]);</code></pre>
+<p><code>PreOutcomeMostlyMissing</code> 别拿来删数据：它标的是“这个 trial 的 preOutcome 值不可信”，
+在 Layer-2 GLM 里当调节变量时要谨慎，或做敏感性分析。</p>
+</div>
 <details class="full"><summary>看完整原文（115 行，已逐行讲解 108 行）</summary><div class="code"><table>
 <tr><td class="ln">1</td><td class="src">function [qcTable, summary] = ymtcTrialQC(resultsCsv, options)</td></tr>
 <tr><td class="ln">2</td><td class="src">%YMTCTRIALQC Apply the analysis plan&#x27;s trial-rejection rules to 04_all_segments.csv.</td></tr>

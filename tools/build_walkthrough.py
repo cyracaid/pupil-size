@@ -50,6 +50,8 @@ def file_section(rel, meta, lines):
         parts.append(code_block(lines, a, b))
         parts.append('<div class="note">%s</div>' % note)
         covered += b - a + 1
+    if meta.get("data"):
+        parts.append('<div class="datawalk"><h3>落到你的数据上</h3>%s</div>' % meta["data"])
     if blocks:
         parts.append('<details class="full"><summary>看完整原文（%d 行，已逐行讲解 %d 行）</summary>%s</details>'
                      % (len(lines), covered, code_block(lines, 1, len(lines))))
@@ -139,6 +141,12 @@ main{flex:1;min-width:0;padding:24px 40px 120px;max-width:1040px}
 details.full{margin:26px 0 40px}
 details.full summary{cursor:pointer;color:var(--dim);font-size:14px}
 .rtip{margin:0}
+.datawalk{margin:26px 0 8px;padding:16px 20px;background:#eef4ee;border:1px solid #d3e2d3;
+ border-radius:12px}
+.datawalk h3{margin:0 0 8px;font-size:16px;color:#2f6f4f}
+.datawalk table{border-collapse:collapse;margin:8px 0;font-size:14px}
+.datawalk th,.datawalk td{border:1px solid #cfe0cf;padding:4px 10px;text-align:left}
+.datawalk th{background:#e3eee3}
 footer{color:var(--dim);font-size:13px;padding:0 40px 60px}
 @media(max-width:860px){nav{display:none}main{padding:16px 18px 80px}header{padding:20px}}
 </style></head><body>
