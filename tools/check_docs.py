@@ -14,6 +14,7 @@ What it catches - each of these was a real defect that shipped:
 
 Exit code 1 on any finding, so the Pages workflow can gate on it.
 """
+import ast
 import importlib.util
 import pathlib
 import re
@@ -39,14 +40,19 @@ def load_build_readme():
 
 
 big = load_build_readme()
-GUIDES = [
-    ("01", "01_pipeline_overview.md", "zh/01_流程总览.md"),
-    ("02", "02_column_dictionary.md", "zh/02_列字典.md"),
-    ("03", "03_pupil_size_internals.md", "zh/03_瞳孔算法.md"),
-    ("04", "04_our_code.md", "zh/04_我们的代码.md"),
-    ("05", "05_data_quality.md", "zh/05_数据质量.md"),
-    ("06", "06_faq.md", "zh/06_常见问题.md"),
-]
+
+
+def load_guides():
+    """Read GUIDES out of build_site.py without importing it (importing builds the site)."""
+    tree = ast.parse((HERE / "build_site.py").read_text(encoding="utf-8"))
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+                isinstance(t, ast.Name) and t.id == "GUIDES" for t in node.targets):
+            return [(n, en, zh) for n, en, zh, _titles in ast.literal_eval(node.value)]
+    raise SystemExit("GUIDES not found in tools/build_site.py")
+
+
+GUIDES = load_guides()
 
 
 def normalise(name):
