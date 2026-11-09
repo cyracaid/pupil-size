@@ -652,6 +652,35 @@ Built by `ymtcMergeResults` from the 5-step event table. Each segment's statisti
 
 ## 5. Files and functions
 
+```
+trk2csv_batch ──▶ trk2csv ──▶ private/readTrk ─▶ private/labelSamples ─▶ private/checkTrk
+                                  (parse)          (events on samples)      (record only)
+
+ymtcEventTableBatch ──▶ ymtcEventTable ──▶ readOrder()   (subfunction, same file)
+         │                    │
+         │                    └──▶ 05_markers/05_<sub>_markers[_5step].csv
+         └──▶ ymtcTrialWide  / ymtcTimingCheck     (read that table, write one file each)
+
+ymtcRunCheck     standalone: reads 03_events, writes 07_checks/07_all_run_check.csv
+ymtcConfig       read by every ymtc* function: where the folders are
+checkDocs        compares docs/02 with the real header of every output table
+```
+
+| file | lines | what it does | writes |
+|---|---|---|---|
+| `trk2csv.m` | 87 | one .trk → one per-sample CSV + a report | 02_samples/<name>.csv |
+| `trk2csv_batch.m` | 76 | a folder of .trk → the same, plus two QC tables | 02_all_qc_summary.csv, 02_all_issues.csv |
+| `private/readTrk.m` | 79 | parse the text log into header / samples / events | in memory |
+| `private/labelSamples.m` | 46 | attach events to samples, carry run / trial / phase forward | in memory |
+| `private/checkTrk.m` | 134 | compare with what the task should have produced; record, never repair | 02_all_issues.csv rows |
+| `ymtcEventTable.m` | 184 | one subject → one row per marker, in task order | 05_markers/05_<sub>_markers[_5step].csv |
+| `ymtcEventTableBatch.m` | 122 | loop over subjects, add the summary and the combined tables | 05_all_markers*.csv, 05_all_markers_summary.csv |
+| `ymtcTimingCheck.m` | 71 | descriptive diff_s per subject and marker | 05_all_timing_check.csv |
+| `ymtcTrialWide.m` | 68 | long marker table → one row per trial | 05_all_trials_wide.csv |
+| `ymtcRunCheck.m` | 117 | is every run really 21 trials (BurnInStart as the boundary) | 07_checks/07_all_run_check.csv |
+| `ymtcConfig.m` | 40 | folder layout; no path is hard-coded | struct C |
+| `checkDocs.m` | 101 | compare docs/02 with the real table headers | console |
+
 <details>
 <summary><b>Original code (<code>helperFunctions/</code>)</b></summary>
 
@@ -1484,6 +1513,35 @@ valid 원시 샘플만: 시각(ms)과 직경.
 
 ## 5. 파일과 함수
 
+```
+trk2csv_batch ──▶ trk2csv ──▶ private/readTrk ─▶ private/labelSamples ─▶ private/checkTrk
+                                  (파싱)            (샘플에 이벤트)          (기록만)
+
+ymtcEventTableBatch ──▶ ymtcEventTable ──▶ readOrder()   (같은 파일의 하위 함수)
+         │                    │
+         │                    └──▶ 05_markers/05_<sub>_markers[_5step].csv
+         └──▶ ymtcTrialWide  / ymtcTimingCheck     (표를 읽고 파일 하나씩 씀)
+
+ymtcRunCheck     독립: 03_events를 읽고 07_checks/07_all_run_check.csv를 씀
+ymtcConfig       모든 ymtc* 함수가 읽음: 폴더 위치
+checkDocs        docs/02와 실제 표 헤더를 비교
+```
+
+| 파일 | 행 | 하는 일 | 출력 |
+|---|---|---|---|
+| `trk2csv.m` | 87 | trk 하나 → 샘플 CSV 하나 + 보고서 | 02_samples/<name>.csv |
+| `trk2csv_batch.m` | 76 | trk 폴더 → 같은 것 + QC 표 두 개 | 02_all_qc_summary.csv, 02_all_issues.csv |
+| `private/readTrk.m` | 79 | 텍스트 로그를 헤더/샘플/이벤트로 파싱 | 메모리 |
+| `private/labelSamples.m` | 46 | 이벤트를 샘플에 붙이고 run/trial/phase를 이어감 | 메모리 |
+| `private/checkTrk.m` | 134 | 과제가 만들어야 할 것과 비교; 기록만 | 02_all_issues.csv 행 |
+| `ymtcEventTable.m` | 184 | 피험자 한 명 → 마커 한 줄씩, 과제 순서 | 05_markers/05_<sub>_markers[_5step].csv |
+| `ymtcEventTableBatch.m` | 122 | 피험자 반복 + 요약표와 통합표 | 05_all_markers*.csv, 05_all_markers_summary.csv |
+| `ymtcTimingCheck.m` | 71 | 피험자×마커별 diff_s 요약 | 05_all_timing_check.csv |
+| `ymtcTrialWide.m` | 68 | 긴 마커 표 → trial 한 줄 | 05_all_trials_wide.csv |
+| `ymtcRunCheck.m` | 117 | 모든 run이 21 trial인가 (BurnInStart 기준) | 07_checks/07_all_run_check.csv |
+| `ymtcConfig.m` | 40 | 폴더 위치; 경로 하드코딩 없음 | 구조체 C |
+| `checkDocs.m` | 101 | docs/02와 실제 표 헤더 비교 | 콘솔 |
+
 <details>
 <summary><b>원본 코드(<code>helperFunctions/</code>)</b></summary>
 
@@ -2314,6 +2372,35 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 </details>
 
 ## 5. 文件与函数
+
+```
+trk2csv_batch ──▶ trk2csv ──▶ private/readTrk ─▶ private/labelSamples ─▶ private/checkTrk
+                                  （解析）          （事件挂到样本）        （只记录）
+
+ymtcEventTableBatch ──▶ ymtcEventTable ──▶ readOrder()   （同文件末尾的子函数）
+         │                    │
+         │                    └──▶ 05_markers/05_<sub>_markers[_5step].csv
+         └──▶ ymtcTrialWide  / ymtcTimingCheck     （读那张表，各写一个文件）
+
+ymtcRunCheck     独立：读 03_events，写 07_checks/07_all_run_check.csv
+ymtcConfig       所有 ymtc* 函数都读它：文件夹在哪
+checkDocs        比对 docs/02 和每张输出表的真实表头
+```
+
+| 文件 | 行数 | 做什么 | 写出 |
+|---|---|---|---|
+| `trk2csv.m` | 87 | 一个 .trk → 一个逐样本 CSV + 报告 | 02_samples/<name>.csv |
+| `trk2csv_batch.m` | 76 | 整个文件夹 → 同上，另加两张 QC 表 | 02_all_qc_summary.csv、02_all_issues.csv |
+| `private/readTrk.m` | 79 | 把文本日志解析成表头/样本/事件 | 内存 |
+| `private/labelSamples.m` | 46 | 事件挂到样本，向后填 run/trial/phase | 内存 |
+| `private/checkTrk.m` | 134 | 与任务应有状态对比；只记录不修补 | 02_all_issues.csv 的行 |
+| `ymtcEventTable.m` | 184 | 一个被试 → 每 marker 一行，按任务顺序 | 05_markers/05_<sub>_markers[_5step].csv |
+| `ymtcEventTableBatch.m` | 122 | 循环被试，加汇总表和合并表 | 05_all_markers*.csv、05_all_markers_summary.csv |
+| `ymtcTimingCheck.m` | 71 | 按被试 × marker 汇总 diff_s | 05_all_timing_check.csv |
+| `ymtcTrialWide.m` | 68 | 长表 → 一 trial 一行 | 05_all_trials_wide.csv |
+| `ymtcRunCheck.m` | 117 | 每个 run 是否 21 trial（用 BurnInStart 分界） | 07_checks/07_all_run_check.csv |
+| `ymtcConfig.m` | 40 | 文件夹位置；不写死路径 | 结构体 C |
+| `checkDocs.m` | 101 | 比对 docs/02 与真实表头 | 终端 |
 
 <details>
 <summary><b>原版代码（<code>helperFunctions/</code>）</b></summary>

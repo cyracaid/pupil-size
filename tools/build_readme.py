@@ -389,6 +389,64 @@ HELPERS = [
     ("FALLBACK/", T("Replacements for `butter`, `filtfilt`, `histc`, `nanmin` / `nanmax` / `nanmean` / `nanmedian` for MATLAB without the toolbox or with the function removed. TRAP: `addpath(genpath(...))` puts folders at the FRONT, so a FALLBACK function shadows the real toolbox one; use `addpath(..., '-end')` to prefer the toolbox. This machine has no Statistics toolbox, so the `nan*` ones are always FALLBACK.", "툴박스가 없거나 함수가 제거된 MATLAB용 `butter`, `filtfilt`, `histc`, `nanmin` / `nanmax` / `nanmean` / `nanmedian` 대체 구현. 함정: `addpath(genpath(...))`는 폴더를 **맨 앞**에 넣어 FALLBACK이 진짜 툴박스 함수를 가린다. 툴박스를 우선하려면 `addpath(..., '-end')`. 이 컴퓨터에는 Statistics 툴박스가 없어 `nan*`는 항상 FALLBACK.", "给没有工具箱或函数已被移除的 MATLAB 用的 `butter`、`filtfilt`、`histc`、`nanmin` / `nanmax` / `nanmean` / `nanmedian` 替代实现。陷阱：`addpath(genpath(...))` 把文件夹放到路径**最前面**，FALLBACK 会盖住真工具箱函数；想优先用工具箱就用 `addpath(..., '-end')`。本机没有 Statistics 工具箱，所以 `nan*` 一直是 FALLBACK。")),
     ("LEGACY/", T("Emulates `table` for very old MATLAB.", "아주 오래된 MATLAB에서 `table`을 흉내 냄.", "给很老的 MATLAB 模拟 `table`。")),
 ]
+
+YMTC_CHAIN = {
+ "en": """```
+trk2csv_batch ──▶ trk2csv ──▶ private/readTrk ─▶ private/labelSamples ─▶ private/checkTrk
+                                  (parse)          (events on samples)      (record only)
+
+ymtcEventTableBatch ──▶ ymtcEventTable ──▶ readOrder()   (subfunction, same file)
+         │                    │
+         │                    └──▶ 05_markers/05_<sub>_markers[_5step].csv
+         └──▶ ymtcTrialWide  / ymtcTimingCheck     (read that table, write one file each)
+
+ymtcRunCheck     standalone: reads 03_events, writes 07_checks/07_all_run_check.csv
+ymtcConfig       read by every ymtc* function: where the folders are
+checkDocs        compares docs/02 with the real header of every output table
+```""",
+ "ko": """```
+trk2csv_batch ──▶ trk2csv ──▶ private/readTrk ─▶ private/labelSamples ─▶ private/checkTrk
+                                  (파싱)            (샘플에 이벤트)          (기록만)
+
+ymtcEventTableBatch ──▶ ymtcEventTable ──▶ readOrder()   (같은 파일의 하위 함수)
+         │                    │
+         │                    └──▶ 05_markers/05_<sub>_markers[_5step].csv
+         └──▶ ymtcTrialWide  / ymtcTimingCheck     (표를 읽고 파일 하나씩 씀)
+
+ymtcRunCheck     독립: 03_events를 읽고 07_checks/07_all_run_check.csv를 씀
+ymtcConfig       모든 ymtc* 함수가 읽음: 폴더 위치
+checkDocs        docs/02와 실제 표 헤더를 비교
+```""",
+ "zh": """```
+trk2csv_batch ──▶ trk2csv ──▶ private/readTrk ─▶ private/labelSamples ─▶ private/checkTrk
+                                  （解析）          （事件挂到样本）        （只记录）
+
+ymtcEventTableBatch ──▶ ymtcEventTable ──▶ readOrder()   （同文件末尾的子函数）
+         │                    │
+         │                    └──▶ 05_markers/05_<sub>_markers[_5step].csv
+         └──▶ ymtcTrialWide  / ymtcTimingCheck     （读那张表，各写一个文件）
+
+ymtcRunCheck     独立：读 03_events，写 07_checks/07_all_run_check.csv
+ymtcConfig       所有 ymtc* 函数都读它：文件夹在哪
+checkDocs        比对 docs/02 和每张输出表的真实表头
+```""",
+}
+
+YMTC_TABLE = [
+ ("trk2csv.m", "87", T("one .trk → one per-sample CSV + a report", "trk 하나 → 샘플 CSV 하나 + 보고서", "一个 .trk → 一个逐样本 CSV + 报告"), T("02_samples/<name>.csv", "02_samples/<name>.csv", "02_samples/<name>.csv")),
+ ("trk2csv_batch.m", "76", T("a folder of .trk → the same, plus two QC tables", "trk 폴더 → 같은 것 + QC 표 두 개", "整个文件夹 → 同上，另加两张 QC 表"), T("02_all_qc_summary.csv, 02_all_issues.csv", "02_all_qc_summary.csv, 02_all_issues.csv", "02_all_qc_summary.csv、02_all_issues.csv")),
+ ("private/readTrk.m", "79", T("parse the text log into header / samples / events", "텍스트 로그를 헤더/샘플/이벤트로 파싱", "把文本日志解析成表头/样本/事件"), T("in memory", "메모리", "内存")),
+ ("private/labelSamples.m", "46", T("attach events to samples, carry run / trial / phase forward", "이벤트를 샘플에 붙이고 run/trial/phase를 이어감", "事件挂到样本，向后填 run/trial/phase"), T("in memory", "메모리", "内存")),
+ ("private/checkTrk.m", "134", T("compare with what the task should have produced; record, never repair", "과제가 만들어야 할 것과 비교; 기록만", "与任务应有状态对比；只记录不修补"), T("02_all_issues.csv rows", "02_all_issues.csv 행", "02_all_issues.csv 的行")),
+ ("ymtcEventTable.m", "184", T("one subject → one row per marker, in task order", "피험자 한 명 → 마커 한 줄씩, 과제 순서", "一个被试 → 每 marker 一行，按任务顺序"), T("05_markers/05_<sub>_markers[_5step].csv", "05_markers/05_<sub>_markers[_5step].csv", "05_markers/05_<sub>_markers[_5step].csv")),
+ ("ymtcEventTableBatch.m", "122", T("loop over subjects, add the summary and the combined tables", "피험자 반복 + 요약표와 통합표", "循环被试，加汇总表和合并表"), T("05_all_markers*.csv, 05_all_markers_summary.csv", "05_all_markers*.csv, 05_all_markers_summary.csv", "05_all_markers*.csv、05_all_markers_summary.csv")),
+ ("ymtcTimingCheck.m", "71", T("descriptive diff_s per subject and marker", "피험자×마커별 diff_s 요약", "按被试 × marker 汇总 diff_s"), T("05_all_timing_check.csv", "05_all_timing_check.csv", "05_all_timing_check.csv")),
+ ("ymtcTrialWide.m", "68", T("long marker table → one row per trial", "긴 마커 표 → trial 한 줄", "长表 → 一 trial 一行"), T("05_all_trials_wide.csv", "05_all_trials_wide.csv", "05_all_trials_wide.csv")),
+ ("ymtcRunCheck.m", "117", T("is every run really 21 trials (BurnInStart as the boundary)", "모든 run이 21 trial인가 (BurnInStart 기준)", "每个 run 是否 21 trial（用 BurnInStart 分界）"), T("07_checks/07_all_run_check.csv", "07_checks/07_all_run_check.csv", "07_checks/07_all_run_check.csv")),
+ ("ymtcConfig.m", "40", T("folder layout; no path is hard-coded", "폴더 위치; 경로 하드코딩 없음", "文件夹位置；不写死路径"), T("struct C", "구조체 C", "结构体 C")),
+ ("checkDocs.m", "101", T("compare docs/02 with the real table headers", "docs/02와 실제 표 헤더 비교", "比对 docs/02 与真实表头"), T("console", "콘솔", "终端")),
+]
+
 YMTC_FILES = [
     ("trk2csv.m", T("One `.trk` → one per-sample CSV plus a report. Needs no toolbox.", "`.trk` 하나 → 샘플 단위 CSV 하나와 보고서. 툴박스 불필요.", "一个 `.trk` → 一个逐样本 CSV 和一份报告。不需要工具箱。")),
     ("trk2csv_batch.m", T("A folder of `.trk` → `csv/` plus `trk2csv_qc_summary.csv` and `trk2csv_issues.csv`.", "`.trk` 폴더 → `csv/`와 `trk2csv_qc_summary.csv`, `trk2csv_issues.csv`.", "一个 `.trk` 文件夹 → `csv/`，外加 `trk2csv_qc_summary.csv` 与 `trk2csv_issues.csv`。")),
@@ -857,6 +915,16 @@ def sectionlang(lang):
     o.append(det("<b>%s</b>" % P["set_kret"], set_table(KRET_OPT, lang)))
     # 5 functions
     o.append("## %s" % P["h_fn"])
+    o.append("")
+    o.append(YMTC_CHAIN[lang])
+    o.append("")
+    hdr = {"en": ("file", "lines", "what it does", "writes"),
+           "ko": ("파일", "행", "하는 일", "출력"),
+           "zh": ("文件", "行数", "做什么", "写出")}[lang]
+    o.append("| %s | %s | %s | %s |" % hdr)
+    o.append("|---|---|---|---|")
+    for f, n, what, out in YMTC_TABLE:
+        o.append("| `%s` | %s | %s | %s |" % (f, n, what[i], out[i]))
     o.append("")
     o.append(det("<b>%s</b>" % P["fn_up"], "\n".join(det("<code>%s</code>" % n, d[i]) for n, d in HELPERS)))
     o.append(det("<b>%s</b>" % P["fn_our"], "\n".join(det("<code>%s</code>" % n, d[i]) for n, d in YMTC_FILES)))
