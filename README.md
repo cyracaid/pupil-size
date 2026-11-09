@@ -38,6 +38,29 @@ The documentation site is trilingual; this README is English only.
 The column dictionary is the page to start with if you need to know what a number means:
 [`docs/02_column_dictionary.md`](docs/02_column_dictionary.md).
 
+## Code walkthrough
+
+`walkthrough/index.html` is a reading guide for the MATLAB code, aimed at someone
+who knows R but has never written MATLAB. Open the file in a browser — it needs
+no server and no build step.
+
+- It starts with the pipeline map: eight stages, each listing the files that
+  belong to it; click a file to jump to its section.
+- Every file gets its source with line numbers, then an explanation block by
+  block: what the code does, why it is written that way, and the R equivalent
+  where one exists (`unique` + `accumarray` is `tapply`; `mfilename` is
+  `here::here()`; `arguments` blocks are checked named arguments).
+- The files that decide numbers — `rawDataFilter.m`, `PupilDataModel.m`,
+  `ymtcTrialQC.m`, `trk2csv.m`, `ymtcConfig.m` — are explained end to end and
+  end with a "on your data" box that says what each variable is in the real
+  table.
+- The rest carry a summary and their full source; their notes are being
+  written.
+
+The text lives in `tools/walkthrough_content.py`; `python3 tools/build_walkthrough.py`
+regenerates the page (it reads `代码_matlab/` and `code/`; set `WALK_CODE` if the
+MATLAB folder is elsewhere).
+
 ## Quick start
 
 ```matlab
