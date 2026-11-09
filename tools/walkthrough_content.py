@@ -29,6 +29,15 @@ FILES = [
     ("ymtcFilterPlots.m", 85),
     ("ymtc_config.template.m", 23),
     ("tests/test_trk2csv.m", 201),
+    ("code/helperFunctions/rawDataFilter.m", 567),
+    ("code/dataModels/PupilDataModel.m", 983),
+    ("code/dataModels/ValidSamplesModel.m", 401),
+    ("code/dataModels/RawSamplesModel.m", 386),
+    ("code/dataModels/RawFileModel.m", 175),
+    ("code/helperFunctions/plotSegments.m", 162),
+    ("code/helperFunctions/printToConsole.m", 62),
+    ("code/helperFunctions/genMeanDiaSamples.m", 89),
+    ("code/helperFunctions/legacyModeCheck.m", 27),
 ]
 
 STAGES = [
@@ -49,6 +58,12 @@ STAGES = [
      "files": [("ymtcMergeResults.m", 109)]},
     {"num": "07", "name": "检查", "desc": "运行结构与文档一致性",
      "files": [("ymtcRunCheck.m", 117), ("checkDocs.m", 133)]},
+    {"num": "A", "name": "算法（Kret 原版）", "desc": "真正做判断的那部分",
+     "files": [("code/helperFunctions/rawDataFilter.m", 567),
+               ("code/dataModels/PupilDataModel.m", 983),
+               ("code/dataModels/ValidSamplesModel.m", 401),
+               ("code/dataModels/RawSamplesModel.m", 386),
+               ("code/dataModels/RawFileModel.m", 175)]},
     {"num": "§", "name": "地图与工具", "desc": "路径、诊断、测试",
      "files": [("ymtcConfig.m", 40), ("ymtcManipulationCheck.m", 113),
                ("ymtcFilterPlots.m", 85), ("ymtc_config.template.m", 23),
@@ -303,6 +318,99 @@ trialQc = groupsummary(qcTable, ["participant","trial"], ...
     },
     "tests/test_trk2csv.m": {
         "summary": "解析层的自测：构造小日志、跑 trk2csv、逐项断言。",
+        "blocks": [],
+    },
+
+    # ------------------------------------------------------- 上游：算法核心
+    "code/helperFunctions/rawDataFilter.m": {
+        "summary": "上游 Kret &amp; Sjak-Shie 的核心：它只回答一个问题——**哪些原始样本算有效**。"
+                   "四个子滤波器依次跑，最后输出一个逻辑向量。整个项目的每个数字都从这里开始。",
+        "blocks": [
+            (1, 10, R + "一个函数、三个输出：有效性向量 + 两个中间量（速度滤波、趋势滤波的诊断数据）。"
+                       "注意这不是方法，是一个<b>局部函数文件</b>——同一个 .m 里还有十几个 "
+                       "<code>function</code>，文件末尾那几个是子函数，只有本文件能调用。</p>"),
+            (12, 30, "参数说明：<code>t_ms</code> 时间（毫秒）、<code>diaSamples</code> 直径、"
+                     "<code>rawFiltSettings</code> 设置。不带参数调用时，它会返回默认设置——"
+                     "所以 <code>rawDataFilter()</code> 是一份“默认参数清单”。</p>"),
+            (62, 118, "<b>默认设置</b>，全部在这里："
+                      "<ul><li>直径范围 1.5–9（<b>毫米</b>）——像素数据必须覆盖</li>"
+                      "<li>孤岛：间隔 40 ms、最小宽度 50 ms</li>"
+                      "<li>速度滤波：<b>16 倍 MAD</b>，超过 200 ms 的间隔不算速度</li>"
+                      "<li>缺口：宽 75–2000 ms 算缺口，缺口前后各切 <b>50 ms</b></li></ul>"
+                      "这四行数字就是整篇论文的方法部分。</p>"),
+            (120, 160, "趋势滤波的设置：<b>扫 4 趟</b>，每趟插值到 100 Hz、16 Hz 低通、算偏差，"
+                       "超过 <b>16 倍 MAD</b> 的剔掉。为什么要 4 趟——因为第一趟可能误删好样本，"
+                       "后面几趟用剩下的样本重建趋势线，能把它们放回来。</p>"
+                       "<p><code>butter(1, 16/(100/2))</code> 是 1 阶 Butterworth 低通，"
+                       "截止 16 Hz。这里用的是 <code>butter</code> 设计系数而不是直接滤波，"
+                       "系数后面会被 <code>filtfilt</code> 用上（零相位）。</p>"),
+            (162, 196, "<b>主流程四步</b>，一行一步，非常好读："
+                       "<ol><li>先假设所有非 NaN 都有效</li>"
+                       "<li>范围滤波</li><li>速度滤波（眨眼）</li><li>趋势滤波（慢伪影）</li></ol>"
+                       "<code>isValid</code> 这个向量一路被传进去、被改写，最后原样输出。"
+                       "注意：<b>直径本身从头到尾没被修改过</b>。</p>"),
+            (200, 231, "<b>范围滤波</b>：超出 min/max 的直接标无效。最简单的一个，"
+                       "也是唯一一个用<b>绝对阈值</b>的——所以它最需要按数据单位调整（毫米 vs 像素）。</p>"),
+            (232, 286, "<b>速度滤波（眨眼）</b>，全文件最巧妙的一段："
+                       "<ul><li><code>diff(dia)./diff(t)</code> 算相邻样本的速度</li>"
+                       "<li>间隔超过 200 ms 的地方速度设为 NaN（跨缺口的速度没有意义）</li>"
+                       "<li>每个样本取<b>前后两段速度的较大值</b>——这样眨眼的两端都会被抓住</li>"
+                       "<li><code>madCalc</code> 求中位数和 MAD，超过 <code>median + 16*MAD</code> 的标无效</li></ul>"
+                       "<p>最后调 <code>removeLoners</code> 和 <code>expandGaps</code>："
+                       "先清孤岛，再切缺口边缘——因为眨眼边缘的样本速度可能没超标，但已经不可信了。</p>"),
+            (287, 388, "<b>趋势滤波</b>：先插值到 100 Hz、低通 16 Hz 得到一条平滑趋势线，"
+                       "再算每个样本离这条线多远，超过 <code>median + 16*MAD</code> 的标无效，"
+                       "重复 4 趟。它抓的是“不快但整体偏离”的伪影，比如半闭眼、缓慢漂移。</p>"),
+            (389, 406, "<code>madCalc</code>：中位数 + MAD 的小工具。"
+                       "<b>为什么用 MAD 而不是标准差</b>——要删的那些大伪影会把标准差撑大，"
+                       "阈值被抬高后自己就漏过去了；MAD 对离群值稳健。</p>"),
+            (407, 442, "<code>deviationCalculator</code>：插值 → 低通 → 相减，得到“离趋势线多远”。"
+                       "被趋势滤波反复调用。</p>"),
+            (443, 513, "<b>孤岛滤波</b>：如果一段有效的样本很短（&lt;50 ms），前后又被无效样本隔开（&gt;40 ms），"
+                       "那它多半是噪声而不是真信号，删掉。</p>"),
+            (514, 567, "<b>缺口扩张</b>：找到宽 75–2000 ms 的缺口，把缺口前后各 50 ms 也标成无效。"
+                       "因为眨眼边缘恢复期的样本“看起来正常”，其实还没回到基线。</p>"),
+        ],
+        "data": """
+<p>这段代码作用在你的数据上的位置：<code>example_kret_pipeline.m</code> 调 "
+<code>PupilDataModel.filterRawData()</code>，后者对每个被试调用它。</p>
+<p><b>我们的数据是像素，不是毫米</b>，所以论文默认的 1.5–9 不能用。管线里改成了按数据分布算：
+0.5–99.5 百分位 × 0.8 / 1.2。这也是为什么最终表里 <code>diameterUnit = 'px'</code>。</p>
+<p>另外两个设置我们没动，保持论文默认：速度滤波 16 MAD、缺口 75 ms / 前后 50 ms。
+要判断这些值合不合适，看 <code>ymtcFilterPlots</code> 出的 PNG。</p>
+""",
+    },
+
+    "code/dataModels/PupilDataModel.m": {
+        "summary": "主控类：一个被试一个对象，把滤镜、插值、分段、统计串起来，并提供批量构造和默认设置。",
+        "blocks": [],
+    },
+    "code/dataModels/ValidSamplesModel.m": {
+        "summary": "有效样本对象：把被判无效的样本插值掉，再低通平滑，得到连续的瞳孔信号。",
+        "blocks": [],
+    },
+    "code/dataModels/RawSamplesModel.m": {
+        "summary": "原始样本对象：只存数据和时间戳，不判断对错。",
+        "blocks": [],
+    },
+    "code/dataModels/RawFileModel.m": {
+        "summary": "文件对象：读 .mat、存 .mat、记住来源。",
+        "blocks": [],
+    },
+    "code/helperFunctions/plotSegments.m": {
+        "summary": "画分段曲线，`plotData()` 用它输出图形。",
+        "blocks": [],
+    },
+    "code/helperFunctions/printToConsole.m": {
+        "summary": "按冗长级别打印进度，`printToConsole(4, ...)` 这类调用都走它。",
+        "blocks": [],
+    },
+    "code/helperFunctions/genMeanDiaSamples.m": {
+        "summary": "双眼时把左右眼合成一个均值信号。",
+        "blocks": [],
+    },
+    "code/helperFunctions/legacyModeCheck.m": {
+        "summary": "兼容旧版设置结构的检查函数。",
         "blocks": [],
     },
 }

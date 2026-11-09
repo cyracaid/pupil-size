@@ -23,7 +23,13 @@ E = html.escape
 
 
 def read_lines(rel):
-    return (CODE / rel).read_text(encoding="utf-8").split("\n")
+    base = REPO if rel.startswith("code/") else CODE
+    raw = (base / rel).read_bytes()
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:          # upstream files are partly latin-1
+        text = raw.decode("cp1252", errors="replace")
+    return text.split("\n")
 
 
 def code_block(lines, a, b, cls="code"):
