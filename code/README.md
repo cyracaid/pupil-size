@@ -70,6 +70,21 @@ RawFileModel ──saveMatFile──▶ <name>.mat
  (5) plotData()              visual check (needs desktop MATLAB)
 ```
 
+#### What each stage actually does
+
+| stage | function (file:line) | decision | key settings |
+|---|---|---|---|
+| 1 range | `removeOutOfBounds` (`rawDataFilter.m:197`) | diameter outside the plausible range becomes invalid | `PupilDiameter_Min/_Max` (defaults 1.5 / 9, **millimetres**) |
+| 2 blink | `madSpeedFilter` (`229`) + `expandGaps` (`511`) | sample-to-sample speed above `median + 16 MAD`; plus 50 ms around every gap wider than 75 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
+| 3 trend | `madDeviationFilter` (`284`) | distance from a 16 Hz low-passed trend line above `median + 16 MAD`; 4 passes let wrongly rejected samples come back | `residualsFilter_passes=4`, `MadMultiplier=16` |
+| 4 islands | `removeLoners` (`440`) | islands narrower than 50 ms, separated by more than 40 ms | `islandFilter_minIslandWidth_ms=50`, `_islandSeperation_ms=40` |
+| 5 smooth | `interpAndSmooth` (`ValidSamplesModel.m:107`) | linear interpolation to 1000 Hz, then a 4th-order Butterworth at 4 Hz, zero phase (`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
+| 6 segments | `analyze` (`203`) | per-segment mean / min / max / missing% from the smooth signal **and** from the valid samples | — |
+
+Every threshold is `median + n*MAD`, never mean +/- SD, because a handful of large artifacts would inflate an SD enough to hide themselves. All values above are paper defaults; our pipeline changes only the range filter, since the paper's numbers are millimetres and our data are camera pixels.
+
+The code never edits the diameter. `rawDataFilter` returns one logical vector (`isValid`) and the raw samples stay as recorded; everything downstream works from that mask, which is why a rejected sample can never be recovered later.
+
 ### 2.1 What goes in: the .mat file (`RawFileModel`)
 
 `RawFileModel(diameterUnit, diameter, segmentsTable, zeroTime_ms, filename)` checks its input and writes a `.mat` with four variables. Unfold each field:
@@ -887,6 +902,21 @@ RawFileModel ──saveMatFile──▶ <name>.mat
  (5) plotData()              육안 점검 (데스크톱 MATLAB 필요)
 ```
 
+#### 각 단계가 실제로 하는 일
+
+| 단계 | 함수 (파일:행) | 판단 | 주요 설정 |
+|---|---|---|---|
+| 1 범위 | `removeOutOfBounds` (`rawDataFilter.m:197`) | 그럴듯한 범위를 벗어난 직경은 무효 | `PupilDiameter_Min/_Max` (기본 1.5 / 9, **밀리미터**) |
+| 2 깜박임 | `madSpeedFilter` (`229`) + `expandGaps` (`511`) | `median + 16 MAD`를 넘는 샘플 간 속도, 그리고 75 ms보다 넓은 간격 주변 50 ms | `dilationSpeedFilter_MadMultiplier=16`, `maxGap_ms=200` |
+| 3 추세 | `madDeviationFilter` (`284`) | 16 Hz 저역 통과 추세선에서 `median + 16 MAD` 이상 벗어난 점. 4회 반복으로 잘못 제거된 샘플이 돌아온다 | `residualsFilter_passes=4` |
+| 4 고립 | `removeLoners` (`440`) | 50 ms보다 좁고 40 ms 이상 떨어진 섬 | `minIslandWidth_ms=50`, `islandSeperation_ms=40` |
+| 5 평활 | `interpAndSmooth` (`ValidSamplesModel.m:107`) | 1000 Hz 선형 보간 후 4차 Butterworth 4 Hz, 영위상(`filtfilt`) | `interp_upsamplingFreq=1000`, `LpFilt_cutoffFreq=4` |
+| 6 구간 | `analyze` (`203`) | 구간별 평균/최소/최대/결측%를 평활 신호와 유효 샘플 양쪽에서 | — |
+
+모든 임계값은 `median + n*MAD`이며 평균 ± SD가 아니다. 큰 아티팩트 몇 개가 SD를 부풀려 스스로를 숨기기 때문이다. 위 값은 모두 논문 기본값이고, 우리 파이프라인은 범위 필터만 바꾼다(논문 값은 밀리미터, 우리 데이터는 픽셀).
+
+코드는 직경을 절대 고치지 않는다. `rawDataFilter`는 논리 벡터(`isValid`) 하나를 돌려주고 원시 샘플은 그대로 남는다.
+
 ### 2.1 입력: .mat 파일 (`RawFileModel`)
 
 `RawFileModel(diameterUnit, diameter, segmentsTable, zeroTime_ms, filename)`은 입력을 검사하고 변수 네 개가 든 `.mat`을 쓴다. 필드별로 펼쳐 보라:
@@ -1702,6 +1732,21 @@ RawFileModel ──saveMatFile──▶ <name>.mat
  (4) exportSegments(folder)  每段的连续时间曲线 → CSV
  (5) plotData()              目视检查（需要桌面 MATLAB）
 ```
+
+#### 每一阶段到底做了什么
+
+| 阶段 | 函数（文件:行） | 判断什么 | 关键设置 |
+|---|---|---|---|
+| 1 范围 | `removeOutOfBounds`（`rawDataFilter.m:197`） | 直径超出合理范围即无效 | `PupilDiameter_Min/_Max`（默认 1.5 / 9，**毫米**） |
+| 2 眨眼 | `madSpeedFilter`（`229`）+ `expandGaps`（`511`） | 相邻样本速度超过 `median + 16 MAD`；再把宽于 75 ms 的缺口前后各 50 ms 去掉 | `dilationSpeedFilter_MadMultiplier=16`、`maxGap_ms=200` |
+| 3 趋势 | `madDeviationFilter`（`284`） | 离 16 Hz 低通趋势线超过 `median + 16 MAD` 的点；**回扫 4 趟**让被误删的好样本复活 | `residualsFilter_passes=4` |
+| 4 孤立 | `removeLoners`（`440`） | 窄于 50 ms、且与邻段隔开 40 ms 以上的孤岛 | `minIslandWidth_ms=50`、`islandSeperation_ms=40` |
+| 5 平滑 | `interpAndSmooth`（`ValidSamplesModel.m:107`） | 线性插值到 1000 Hz，再走 4 阶 Butterworth 4 Hz、零相位（`filtfilt`） | `interp_upsamplingFreq=1000`、`LpFilt_cutoffFreq=4` |
+| 6 分段 | `analyze`（`203`） | 每段的均值/最小/最大/缺失%，平滑信号和有效样本各算一套 | — |
+
+所有阈值都是 `median + n*MAD`，不是均值 ± SD——少数巨大伪影会把 SD 撑大，反而把自己藏起来。上面全是论文默认值；我们的管线只改了范围滤波，因为论文的数字是毫米、我们的数据是相机像素。
+
+**代码从不修改直径**：`rawDataFilter` 只返回一个逻辑向量（`isValid`），原始样本原样保留；下游全部基于这个掩码，所以被否掉的样本后面救不回来。
 
 ### 2.1 输入：.mat 文件（`RawFileModel`）
 
