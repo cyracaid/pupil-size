@@ -7,6 +7,8 @@ The documentation site is trilingual; this README is English only.
 **[Documentation site](https://cyracaid.github.io/pupil-size/)** · [English](https://cyracaid.github.io/pupil-size/index.html) · [한국어](https://cyracaid.github.io/pupil-size/index.ko.html) · [中文](https://cyracaid.github.io/pupil-size/index.zh.html)
 · [Reference: every column](https://cyracaid.github.io/pupil-size/reference.html)
 
+**[Code walkthrough](https://github.com/cyracaid/pupil-size/blob/code-walkthrough/walkthrough/index.html)** — line by line, for a reader who knows R but not MATLAB; written on the [`code-walkthrough`](https://github.com/cyracaid/pupil-size/tree/code-walkthrough) branch and still growing.
+
 ## The pipeline in one picture
 
 ```
