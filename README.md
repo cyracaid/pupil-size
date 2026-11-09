@@ -10,20 +10,20 @@ The documentation site is trilingual; this README is English only.
 ## The pipeline in one picture
 
 ```
-01_原始trk/*.trk                 eye-tracker logs (names keep the recording date)
-        |  trk2csv_batch                       |  exportEvents
-        v                                      v
-02_样本/*.csv                    03_事件/<sub>_events.csv   one row per event
-        |                                      |  ymtcEventTable (+ TrialOrder-HK/*.xlsx)
-        |  csv2kretmat                         v
-        v                            05_marker表/   one row per marker, in task order (18 columns)
-04_瞳孔指标/  Kret pipeline                    |
-   04_all_segments.csv and friends             |
-        |                                      |
-        +------------------+-------------------+
+01_raw_trk/*.trk                eye-tracker logs (names keep the recording date)
+        |  trk2csv_batch                      |  exportEvents
+        v                                     v
+02_samples/*.csv                03_events/<sub>_events.csv   one row per event
+        |                                     |  ymtcEventTable (+ TrialOrder-HK/*.xlsx)
+        |  csv2kretmat                        v
+        v                            05_markers/   one row per marker, in task order (18 columns)
+04_pupil/  Kret pipeline                      |
+   04_all_segments.csv and friends            |
+        |                                     |
+        +------------------+------------------+
                            |  ymtcMergeResults
                            v
-06_合并表/06_all_merged.csv      one row per marker + four segments of pupil stats (69 columns)
+06_merged/06_all_merged.csv     one row per marker + four segments of pupil stats (69 columns)
 ```
 
 ## What this branch adds to upstream
@@ -42,7 +42,7 @@ The column dictionary is the page to start with if you need to know what a numbe
 
 ```matlab
 cd code/ymtc
-E = exportEvents('01_原始trk');          % .trk -> 03_事件/*_events.csv (one row per event)
+E = exportEvents('01_raw_trk');          % .trk -> 03_events/*_events.csv (one row per event)
 T = ymtcEventTable('sub001');            % marker table for one subject
 S = ymtcEventTableBatch;                 % every subject, plus a summary
 R = ymtcRunCheck;                        % is every run really 21 trials?

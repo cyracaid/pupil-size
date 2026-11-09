@@ -9,7 +9,7 @@ ZH: 样本层、事件层、marker 层都在这个仓库里；产出最终表的
 | file | role |
 |---|---|
 | `trk2csv.m` / `trk2csv_batch.m` | `.trk` → one CSV per participant; anomalies recorded, never repaired |
-| `exportEvents.m` | `.trk` (or a folder) → `03_事件/<sub>_events.csv`, one row per event, exact event time |
+| `exportEvents.m` | `.trk` (or a folder) → `03_events/<sub>_events.csv`, one row per event, exact event time |
 | `private/readTrk.m`, `labelSamples.m`, `checkTrk.m` | parse, attach events to samples, compare with the task's expectations |
 | `ymtcEventTable.m` / `ymtcEventTableBatch.m` | one row per marker, in task order; conditions read off the marker names |
 | `ymtcRunCheck.m` | is every run really 21 trials (counted with BurnInStart) |

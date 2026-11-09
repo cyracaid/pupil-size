@@ -4,9 +4,8 @@ EN: Every column of the analysis tables: what it means, how it is computed, its 
 KO: 분석 표의 모든 열: 의미, 계산 방법, 단위, 출처.
 ZH: 分析用表的每一列：含义、怎么算、单位、从哪儿来。
 
-Verified against `ymtc-trk2csv@e1b0aa0` (2026-11-09; contains the `code/ymtc` of `e574fce` and upstream
-`pupil-size@645cbc6`, whose pupil parameters are unchanged since). If a table gains a column, update this
-page in the same commit.
+Verified against `ymtc-trk2csv@15b86d2` (2026-11-10), pipeline and folder names included. If a table
+gains a column, update this page in the same commit.
 
 Scope: the eight tables an analysis touches (§A–§H). The sampling-level tables — the 21-column
 `02_samples/*.csv`, `02_all_qc_summary.csv`, `02_all_issues.csv` — are documented on the

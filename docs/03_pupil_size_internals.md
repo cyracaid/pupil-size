@@ -4,7 +4,7 @@ EN: How a raw sample becomes a number: the three artifact filters, interpolation
 KO: 원시 샘플이 수치가 되기까지: 세 가지 아티팩트 필터, 보간, 4 Hz 저역 통과, 구간 분할.
 ZH: 一个原始样本如何变成一个数字：三道伪影滤波、插值、4 Hz 低通、分段。
 
-Verified against `ymtc-trk2csv@e1b0aa0` (2026-11-09), upstream files included. This page cites
+Verified against `ymtc-trk2csv@15b86d2` (2026-11-10), upstream files included. This page cites
 **function names and setting names, not line numbers**: the upstream files gained a three-line
 header once already, which moved every line number by three and quietly invalidated the old
 references. Names survive that; there is no numeric anchor left on this page to rot.

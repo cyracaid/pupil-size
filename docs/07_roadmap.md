@@ -12,7 +12,7 @@ Status legend: **done** shipped and used · **next** agreed, not done · **open*
 | item | where it is visible |
 |---|---|
 | `.trk` → one per-sample csv, anomalies recorded, never repaired | `code/ymtc/trk2csv.m`, `trk2csv_batch.m` |
-| the event timeline `03_事件/<sub>_events.csv` with exact event times | `code/ymtc/exportEvents.m`, [01](01_pipeline_overview.md) §Layer 3 |
+| the event timeline `03_events/<sub>_events.csv` with exact event times | `code/ymtc/exportEvents.m`, [01](01_pipeline_overview.md) §Layer 3 |
 | the marker table, its batch run, the run check | `ymtcEventTable.m`, `ymtcEventTableBatch.m`, `ymtcRunCheck.m` |
 | one row per trial, and `diff_s` per subject × marker | `ymtcTrialWide.m`, `ymtcTimingCheck.m` |
 | six guide pages in EN and ZH, plus the one-page reference | this folder, `tools/build_readme.py` |
@@ -34,7 +34,7 @@ Status legend: **done** shipped and used · **next** agreed, not done · **open*
 
 | decision | the options | cost of each |
 |---|---|---|
-| where `03_事件` is produced | in this repository (`exportEvents`, reproducible from a clone) or on the data side (keeps the analysis layer together) | in-repo needs the file kept in step with `ymtcEventTable`'s expectations |
+| where `03_events` is produced | in this repository (`exportEvents`, reproducible from a clone) or on the data side (keeps the analysis layer together) | in-repo needs the file kept in step with `ymtcEventTable`'s expectations |
 | how `checkDocs` learns the schema | `<!-- cols: … -->` anchors in `02` that it parses, or the current hand-kept list plus a review rule | the anchor route is ~20 lines and removes the class of drift entirely |
 | Korean | translate six guides, or keep one line per page plus the Korean reference | six pages × two languages to maintain on every change |
 

@@ -52,7 +52,7 @@ Two branches leave layer 2, and a third one leaves layer 1. None of them depends
 
 - **to the pupil metrics**: `csv2kretmat.m` rewrites each sample CSV into the Kret format
   (`.mat`, time from 0, one eye, px) and adds the four segment definitions per trial.
-- **to the event timeline**: `exportEvents.m` writes `03_事件/<sub>_events.csv` straight from
+- **to the event timeline**: `exportEvents.m` writes `03_events/<sub>_events.csv` straight from
   the trk — one row per `SoftwareEvent`, carrying the event's own timestamp.
 - **to the event table**: `ymtcEventTable.m` reads that timeline plus the task's `TrialOrder`
   workbooks, picks which order the subject ran, and writes one row per marker in the order

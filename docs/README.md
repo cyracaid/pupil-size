@@ -12,7 +12,7 @@ ZH: 从这里开始。`01` 一页看懂流水线，`02` 列字典，`03` 瞳孔�
 | [`03_pupil_size_internals.md`](03_pupil_size_internals.md) / [`zh/03_瞳孔算法.md`](zh/03_瞳孔算法.md) | the three artifact filters, interpolation, 4 Hz low-pass, segmentation | **done** |
 | [`04_our_code.md`](04_our_code.md) / [`zh/04_我们的代码.md`](zh/04_我们的代码.md) | what is in this repository, what stays with the data, and where the two meet | **done** |
 | [`05_data_quality.md`](05_data_quality.md) / [`zh/05_数据质量.md`](zh/05_数据质量.md) | missing-data structure, rejection rules, threshold sensitivity | **done** |
-| [Review map](reference.html#9-review-map-what-to-read-and-in-what-order) | the files a reviewer must read, in order, with time estimates | in the reference, §9 |
+| [Review map](https://cyracaid.github.io/pupil-size/reference.html#9-review-map-what-to-read-and-in-what-order) | the files a reviewer must read, in order, with time estimates | in the reference, §9 |
 | [`06_faq.md`](06_faq.md) / [`zh/06_常见问题.md`](zh/06_常见问题.md) | the traps that bite most often | **done** |
 | [`07_roadmap.md`](07_roadmap.md) / [`zh/07_路线图.md`](zh/07_路线图.md) | what is done, what is next, which decisions are still open — and where each item shows | **living** |
 
@@ -35,7 +35,7 @@ passes and `02` silently ages. So a table change means three edits in one commit
 `checkDocs.m`, and `02` — and the check only enforces the first two.
 
 `02` and `03` state the commit they were verified against; pages 01, 04, 05 and 06 are about
-whatever `HEAD` of this branch is. Last full verification: 2026-11-09, `e1b0aa0`.
+whatever `HEAD` of this branch is. Last full verification: 2026-11-10, `15b86d2`.
 
 `tools/check_docs.py` (run by the Pages workflow before every build, stdlib only) checks the
 half that `checkDocs.m` cannot, because it never opens these files: that every relative link
