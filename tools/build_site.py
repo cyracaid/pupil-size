@@ -245,9 +245,11 @@ HOME = {
             ("guides/g05.html", "Data quality", "Missing-data structure, rejection rules, threshold sensitivity."),
             ("guides/g06.html", "FAQ", "The traps that bite most often."),
             ("guides/g07.html", "Reading path", "What to read, in what order, what to skip - upstream and our layer, and where the statistics live."),
+            ("walkthrough.html", "Code walkthrough", "Every file, line by line: what it does and why, for a reader who knows R but has never written MATLAB."),
             ("guides/g08.html", "Roadmap and to-do", "Done, next, and the decisions still open - each item with the file that shows it.")]),
     "ko": ("pupil-size · YMTC", "Kret &amp; Sjak-Shie (2019) pupil-size 전처리 코드를 문서화한 포크이며 그 위에 우리 YMTC 계층을 얹었다: MRC <code>.trk</code> → CSV, 이벤트 마커 표, Kret 통계, 병합된 최종 표. 모든 출력 열을 설명한다.",
            [("reference.ko.html", "레퍼런스", "한 페이지에: 파이프라인 지도, 출력 표 14개 열 단위, 설정, 문제 해결."),
+            ("walkthrough.html", "코드 해설", "모든 파일을 줄 단위로: 무엇을 왜 그렇게 했는지, R은 알지만 MATLAB은 처음인 독자를 위해."),
             ("guides/g02.html", "열 사전(영어)", "주요 표의 짧은 사전."),
             ("guides/g01.html", "파이프라인 개요(영어)", "다섯 계층과 그 사이 흐름."),
             ("guides/g05.html", "데이터 품질(영어)", "결측 구조, 제외 규칙, 임계값 민감도."),
@@ -256,6 +258,7 @@ HOME = {
             ("guides/g08.html", "로드맵(영어)", "끝난 것, 다음 것, 아직 열린 결정 - 각 항목이 어디에 보이는지와 함께.")]),
     "zh": ("pupil-size · YMTC", "Kret &amp; Sjak-Shie (2019) pupil-size 预处理代码的带文档 fork，上面加了我们的 YMTC 层：MRC <code>.trk</code> 转 CSV、事件 marker 表、Kret 统计、合并的最终表。每个输出列都有说明。",
            [("reference.zh.html", "参考手册", "全部放在一页：流程总图、14 张输出表逐列说明、设置项、排错。"),
+            ("walkthrough.html", "代码讲解", "逐行讲每个文件在做什么、为什么这么写，写给会 R 但没写过 MATLAB 的读者。"),
             ("guides/g02.zh.html", "列字典", "主要表的精简字典。"),
             ("guides/g01.zh.html", "流程总览", "五层结构，以及层与层之间流动的内容。"),
             ("guides/g05.zh.html", "数据质量", "缺失结构、剔除规则、阈值敏感性。"),
@@ -270,6 +273,14 @@ for lang in ("en", "ko", "zh"):
     fname = "index.html" if lang == "en" else "index.%s.html" % lang
     switch = [(l, "index.html" if l == "en" else "index.%s.html" % l) for l in ("en", "ko", "zh")]
     write(fname, shell(lang, NAV[lang]["home"], body, None, "", switch, 0))
+
+# the code walkthrough is generated from 代码_matlab/ (outside this repo), so it is
+# committed as walkthrough/index.html and copied here as-is
+wt = REPO / "walkthrough" / "index.html"
+if wt.is_file():
+    (SITE / "walkthrough.html").write_text(wt.read_text(encoding="utf-8"), encoding="utf-8")
+else:
+    print("warning: walkthrough/index.html not found")
 
 (SITE / ".nojekyll").write_text("")
 n = sum(1 for _ in SITE.rglob("*.html"))
