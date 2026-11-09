@@ -382,8 +382,67 @@ trialQc = groupsummary(qcTable, ["participant","trial"], ...
     },
 
     "code/dataModels/PupilDataModel.m": {
-        "summary": "主控类：一个被试一个对象，把滤镜、插值、分段、统计串起来，并提供批量构造和默认设置。",
-        "blocks": [],
+        "summary": "主控类：一条记录一个对象，把读取、滤波、插值、分段、导出串成一条链。"
+                   "它自己不算数，只负责按顺序调用别的类。",
+        "blocks": [
+            (1, 3, R + "<code>classdef PupilDataModel &lt; handle</code>：MATLAB 的<b>句柄类</b>，"
+                       "等价于 R 的引用语义环境（<code>R6</code> / reference class）——"
+                       "方法里改对象，调用者能看到改动。普通 value class 不会。</p>"),
+            (12, 60, "类说明就是一份使用手册，五步：转 mat → 构造对象（单个或 <code>batchConstructor</code>）"
+                     "→ <code>filterRawData</code> → <code>processValidSamples</code> → "
+                     "<code>analyzeSegments</code>。读这一段就知道整个 API 的设计。</p>"),
+            (165, 200, "<b>构造函数</b>：装文件名、路径，然后 <code>load</code> 那个 .mat，"
+                       "把时间戳和左右眼原始数据塞进对象。</p>"
+                       "<p>注意 179–189 行那段注释写着 <code>fork patch</code>：原版写死了 "
+                       "<code>ispc</code> 和 Windows 的反斜杠，在 macOS/Linux 上会挂。"
+                       "我们的 fork 加了 <code>endsWith(..., filesep)</code> 判断。"
+                       "<b>这类“为了能在 Mac 上跑而改的补丁”值得全部记下来</b>，"
+                       "因为换成别的系统时它们最容易出问题。</p>"),
+            (226, 245, "<code>set.eyesWithData</code>：属性设值函数，赋值时自动检查合法值（left/right/mean）。"
+                       "相当于 R 里自己写一个 setter 做 <code>stopifnot()</code>。</p>"),
+            (246, 258, "<b>这里有个需要注意的地方</b>：<code>checkScalarCall</code> 里第 251 行是一句裸的 "
+                       "<code>keyboard;</code>。这是原作者留下的<b>调试断点</b>——"
+                       "一旦这个方法被调用，MATLAB 会<b>停在调试器里等你输入</b>。"
+                       "我们的管线没调用它，所以从来没触发；但如果你改代码时碰到了，"
+                       "会以为程序“卡住”。记住它在这里。</p>"),
+            (266, 306, "<code>filterRawData</code>：遍历对象数组，再遍历每只眼，调用 "
+                       "<code>RawSamplesModel.filterData()</code>。它自己不滤波，只是调度。</p>"
+                       "<p>这种“循环 + 转发”是整类的骨架：**每个方法都一样，"
+                       "真正干活的是被调用的类**。所以读懂这一个方法，其余几个结构相同。</p>"),
+            (308, 391, "<code>processValidSamples</code>：拿 <code>isValid</code> 为真的样本，"
+                       "插值 + 平滑，生成一个新的 <code>ValidSamplesModel</code> 对象。"
+                       "从这里开始，“有效样本”和“平滑信号”是两个不同的对象。</p>"),
+            (393, 438, "<code>analyzeSegments</code>：对每条记录调 <code>analyzeSegmentsScalar</code>，"
+                       "把结果收进 cell 数组。注意返回的是 <b>cell</b> 不是表——"
+                       "每个被试一张表，要用 <code>vertcat(results{:})</code> 合起来。"
+                       "我们的 <code>example_kret_pipeline</code> 就是这么做的。</p>"),
+            (439, 500, "<code>exportSegments</code>：把每个段的 1000 Hz 曲线写成 CSV。"
+                       "第 497 行 <code>mkdir</code> 保证输出目录存在。</p>"),
+            (813, 850, "<code>analyzeSegmentsScalar</code>：真正算统计的地方——"
+                       "对一个段里的平滑信号和有效样本各算一套 mean / min / max / 缺失率，"
+                       "这就是 <code>04_all_segments.csv</code> 里那 12 列的来源。</p>"),
+            (851, 899, "<code>batchConstructor</code>（静态方法）：给一个文件夹，"
+                       "对 <code>dir('*.mat')</code> 的每个文件建对象，最后 <code>vertcat</code> 成对象数组。</p>"
+                       "<p>R 里相当于 <code>lapply(files, read_one)</code> 然后 <code>do.call(rbind, ...)</code>。</p>"),
+            (900, 917, "<code>getDefaultSettings</code>：把两个子类的默认设置拼成一个结构体。"
+                       "所以“所有阈值在哪”这个问题，答案分散在 <code>RawSamplesModel</code> 和 "
+                       "<code>ValidSamplesModel</code> 里，这里是入口。</p>"),
+        ],
+        "data": """
+<p>在管线里的位置：<code>example_kret_pipeline.m</code> 大概这样做——</p>
+<pre><code>P = PupilDataModel.batchConstructor(folder, dir(fullfile(folder,'*.mat')), settings);
+P.filterRawData();          % 标出哪些样本有效
+P.processValidSamples();    % 插值 + 4 Hz 平滑
+res = P.analyzeSegments();  % 每个被试一张统计表
+T = vertcat(res{:});       % 合成一张</code></pre>
+<p>三条容易踩的：</p>
+<ul>
+<li><b>方法必须按顺序调。</b> <code>processValidSamples</code> 依赖 <code>isValid</code>，"
+跳过 <code>filterRawData</code> 会报错或算错。</li>
+<li><b>返回的是 cell。</b> 忘了 <code>vertcat</code> 会得到一堆分离的表。</li>
+<li><b>那个 <code>keyboard;</code>。</b> 见上面的注释。</li>
+</ul>
+""",
     },
     "code/dataModels/ValidSamplesModel.m": {
         "summary": "有效样本对象：把被判无效的样本插值掉，再低通平滑，得到连续的瞳孔信号。",

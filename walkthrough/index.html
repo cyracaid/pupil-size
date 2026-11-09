@@ -3947,9 +3947,518 @@ trialQc = groupsummary(qcTable, ["participant","trial"], ...
 </table></div></details>
 </article><article id="code-dataModels-PupilDataModel-m" class="file">
 <h2><code>code/dataModels/PupilDataModel.m</code> <span class="lines">984 行</span></h2>
-<p class="summary">主控类：一个被试一个对象，把滤镜、插值、分段、统计串起来，并提供批量构造和默认设置。</p>
-<p class="todo">这个文件还没有逐行讲解，下面是完整原文。</p>
+<p class="summary">主控类：一条记录一个对象，把读取、滤波、插值、分段、导出串成一条链。它自己不算数，只负责按顺序调用别的类。</p>
 <div class="code"><table>
+<tr><td class="ln">1</td><td class="src">classdef PupilDataModel &lt; handle</td></tr>
+<tr><td class="ln">2</td><td class="src">    %PupilDataModel Data model for holding pupil diameter data.</td></tr>
+<tr><td class="ln">3</td><td class="src">% EN: Orchestrates one recording end to end: read, filter, interpolate, segment, export.</td></tr>
+</table></div>
+<div class="note"><p class="rtip"><b>给 R 读者：</b><code>classdef PupilDataModel &lt; handle</code>：MATLAB 的<b>句柄类</b>，等价于 R 的引用语义环境（<code>R6</code> / reference class）——方法里改对象，调用者能看到改动。普通 value class 不会。</p></div>
+<div class="code"><table>
+<tr><td class="ln">12</td><td class="src">    %         pupil size data and metadata, as well as information about</td></tr>
+<tr><td class="ln">13</td><td class="src">    %         how to segments the recording into the desired sections.</td></tr>
+<tr><td class="ln">14</td><td class="src">    %         See RawFileModel.m for information.</td></tr>
+<tr><td class="ln">15</td><td class="src">    %</td></tr>
+<tr><td class="ln">16</td><td class="src">    %</td></tr>
+<tr><td class="ln">17</td><td class="src">    %    # Generating the PupilDataModel instances:</td></tr>
+<tr><td class="ln">18</td><td class="src">    %       &gt; Constuct a single object via:</td></tr>
+<tr><td class="ln">19</td><td class="src">    %</td></tr>
+<tr><td class="ln">20</td><td class="src">    %          hPupilData = PupilDataModel(filepath,filename,settings)</td></tr>
+<tr><td class="ln">21</td><td class="src">    %</td></tr>
+<tr><td class="ln">22</td><td class="src">    %         where filepath and filename point to the mat file containing</td></tr>
+<tr><td class="ln">23</td><td class="src">    %         the raw data (see RawDataModel.m), and settings is a struct</td></tr>
+<tr><td class="ln">24</td><td class="src">    %         containing the settings to use when processing the data (see</td></tr>
+<tr><td class="ln">25</td><td class="src">    %         PupilDataModel/getDefaultSettings).</td></tr>
+<tr><td class="ln">26</td><td class="src">    %</td></tr>
+<tr><td class="ln">27</td><td class="src">    %       &gt; Or, use the batch constructor method:</td></tr>
+<tr><td class="ln">28</td><td class="src">    %</td></tr>
+<tr><td class="ln">29</td><td class="src">    %          hPupilData = batchConstructor(filepath,dirStruct,settings)</td></tr>
+<tr><td class="ln">30</td><td class="src">    %</td></tr>
+<tr><td class="ln">31</td><td class="src">    %         See PupilDataModel/batchConstructor.</td></tr>
+<tr><td class="ln">32</td><td class="src">    %</td></tr>
+<tr><td class="ln">33</td><td class="src">    %</td></tr>
+<tr><td class="ln">34</td><td class="src">    %    # Processing the raw data:</td></tr>
+<tr><td class="ln">35</td><td class="src">    %       &gt; Call the filterRawData() method on an object (or array) to</td></tr>
+<tr><td class="ln">36</td><td class="src">    %         process the raw data; i.e. the apply the filter steps</td></tr>
+<tr><td class="ln">37</td><td class="src">    %         described in the article and mark a subset of the raw data as</td></tr>
+<tr><td class="ln">38</td><td class="src">    %         &#x27;valid&#x27;:</td></tr>
+<tr><td class="ln">39</td><td class="src">    %</td></tr>
+<tr><td class="ln">40</td><td class="src">    %          hPupilData.filterRawData();</td></tr>
+<tr><td class="ln">41</td><td class="src">    %</td></tr>
+<tr><td class="ln">42</td><td class="src">    %</td></tr>
+<tr><td class="ln">43</td><td class="src">    %    # Processing the valid data:</td></tr>
+<tr><td class="ln">44</td><td class="src">    %       &gt; Call the processValidSamples() method on an object (or array)</td></tr>
+<tr><td class="ln">45</td><td class="src">    %         to process the raw samples marked as valid. These samples are</td></tr>
+<tr><td class="ln">46</td><td class="src">    %         used to create a smooth high-resolution pupil size signal</td></tr>
+<tr><td class="ln">47</td><td class="src">    %         through interpolation and low-pass filtering.</td></tr>
+<tr><td class="ln">48</td><td class="src">    %</td></tr>
+<tr><td class="ln">49</td><td class="src">    %          hPupilData.processValidSamples();</td></tr>
+<tr><td class="ln">50</td><td class="src">    %</td></tr>
+<tr><td class="ln">51</td><td class="src">    %</td></tr>
+<tr><td class="ln">52</td><td class="src">    %     # Analyze the processed data:</td></tr>
+<tr><td class="ln">53</td><td class="src">    %        &gt; Call the analyzeSegments() method to extract descriptive</td></tr>
+<tr><td class="ln">54</td><td class="src">    %          statistics data from the processed samples, per segment:</td></tr>
+<tr><td class="ln">55</td><td class="src">    %</td></tr>
+<tr><td class="ln">56</td><td class="src">    %           results = hPupilData.analyzeSegments();</td></tr>
+<tr><td class="ln">57</td><td class="src">    %</td></tr>
+<tr><td class="ln">58</td><td class="src">    %          The analyzeSegments method analyzes either the sole</td></tr>
+<tr><td class="ln">59</td><td class="src">    %          available pupil, or both pupils and their mean, and</td></tr>
+<tr><td class="ln">60</td><td class="src">    %          horizontally concatenates the results, together with the</td></tr>
+</table></div>
+<div class="note">类说明就是一份使用手册，五步：转 mat → 构造对象（单个或 <code>batchConstructor</code>）→ <code>filterRawData</code> → <code>processValidSamples</code> → <code>analyzeSegments</code>。读这一段就知道整个 API 的设计。</p></div>
+<div class="code"><table>
+<tr><td class="ln">165</td><td class="src">        function obj = PupilDataModel(filepath,filename,settings)</td></tr>
+<tr><td class="ln">166</td><td class="src">            % Constructs a PupilDataModel instance given the filename,</td></tr>
+<tr><td class="ln">167</td><td class="src">            % filepath and settings.</td></tr>
+<tr><td class="ln">168</td><td class="src">            %</td></tr>
+<tr><td class="ln">169</td><td class="src">            %   obj = PupilDataModel(filepath,filename,settings)</td></tr>
+<tr><td class="ln">170</td><td class="src">            %</td></tr>
+<tr><td class="ln">171</td><td class="src">            %    To construct multiple objects, use the static batch</td></tr>
+<tr><td class="ln">172</td><td class="src">            %    constructor method.</td></tr>
+<tr><td class="ln">173</td><td class="src">            %</td></tr>
+<tr><td class="ln">174</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">175</td><td class="src">            </td></tr>
+<tr><td class="ln">176</td><td class="src">            obj.segmentsTable = table();</td></tr>
+<tr><td class="ln">177</td><td class="src">            </td></tr>
+<tr><td class="ln">178</td><td class="src">            % Compatibility check (fork patch: original asserted ispc and</td></tr>
+<tr><td class="ln">179</td><td class="src">            % used a hardcoded &#x27;\&#x27; separator; both blocked macOS/Linux use):</td></tr>
+<tr><td class="ln">180</td><td class="src">            if nargin&gt;0</td></tr>
+<tr><td class="ln">181</td><td class="src">                obj.filename = filename;</td></tr>
+<tr><td class="ln">182</td><td class="src">                if ispc</td></tr>
+<tr><td class="ln">183</td><td class="src">                    obj.filepath = [filepath &#x27;\&#x27;];</td></tr>
+<tr><td class="ln">184</td><td class="src">                else</td></tr>
+<tr><td class="ln">185</td><td class="src">                    obj.filepath = filepath;</td></tr>
+<tr><td class="ln">186</td><td class="src">                    if ~endsWith(obj.filepath, filesep)</td></tr>
+<tr><td class="ln">187</td><td class="src">                        obj.filepath = [obj.filepath, filesep];</td></tr>
+<tr><td class="ln">188</td><td class="src">                    end</td></tr>
+<tr><td class="ln">189</td><td class="src">                end</td></tr>
+<tr><td class="ln">190</td><td class="src">                </td></tr>
+<tr><td class="ln">191</td><td class="src">                % Load the data from the mat file:</td></tr>
+<tr><td class="ln">192</td><td class="src">                s = load([obj.filepath filename]);</td></tr>
+<tr><td class="ln">193</td><td class="src">                </td></tr>
+<tr><td class="ln">194</td><td class="src">                % Save data to object:</td></tr>
+<tr><td class="ln">195</td><td class="src">                obj.timestamps_RawData_ms = s.diameter.t_ms;</td></tr>
+<tr><td class="ln">196</td><td class="src">                if ~isempty(s.diameter.L)</td></tr>
+<tr><td class="ln">197</td><td class="src">                    obj.eyesWithData = {&#x27;left&#x27;};</td></tr>
+<tr><td class="ln">198</td><td class="src">                    obj.leftPupil_RawData ...</td></tr>
+<tr><td class="ln">199</td><td class="src">                        = RawSamplesModel(&#x27;left&#x27;,obj,s.diameter.L);</td></tr>
+<tr><td class="ln">200</td><td class="src">                end</td></tr>
+</table></div>
+<div class="note"><b>构造函数</b>：装文件名、路径，然后 <code>load</code> 那个 .mat，把时间戳和左右眼原始数据塞进对象。</p><p>注意 179–189 行那段注释写着 <code>fork patch</code>：原版写死了 <code>ispc</code> 和 Windows 的反斜杠，在 macOS/Linux 上会挂。我们的 fork 加了 <code>endsWith(..., filesep)</code> 判断。<b>这类“为了能在 Mac 上跑而改的补丁”值得全部记下来</b>，因为换成别的系统时它们最容易出问题。</p></div>
+<div class="code"><table>
+<tr><td class="ln">226</td><td class="src">        function set.eyesWithData(obj,valueIn)</td></tr>
+<tr><td class="ln">227</td><td class="src">            % Set method for eyesWithData.</td></tr>
+<tr><td class="ln">228</td><td class="src">            %</td></tr>
+<tr><td class="ln">229</td><td class="src">            %    The eyesWithData property must be one of the following:</td></tr>
+<tr><td class="ln">230</td><td class="src">            %      {&#x27;left&#x27; &#x27;right&#x27;}, {&#x27;left&#x27;} or {&#x27;right&#x27;} (or {}).</td></tr>
+<tr><td class="ln">231</td><td class="src">            %</td></tr>
+<tr><td class="ln">232</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">233</td><td class="src">            </td></tr>
+<tr><td class="ln">234</td><td class="src">            assert(...</td></tr>
+<tr><td class="ln">235</td><td class="src">                isequal(valueIn,{&#x27;left&#x27; &#x27;right&#x27;})...</td></tr>
+<tr><td class="ln">236</td><td class="src">                ||isequal(valueIn,{&#x27;left&#x27;})...</td></tr>
+<tr><td class="ln">237</td><td class="src">                ||isequal(valueIn,{&#x27;right&#x27;})...</td></tr>
+<tr><td class="ln">238</td><td class="src">                ||isequal(valueIn,{})...</td></tr>
+<tr><td class="ln">239</td><td class="src">                ,&#x27;Value not correct.&#x27;)</td></tr>
+<tr><td class="ln">240</td><td class="src">            obj.eyesWithData = valueIn;</td></tr>
+<tr><td class="ln">241</td><td class="src">            </td></tr>
+<tr><td class="ln">242</td><td class="src">        end</td></tr>
+<tr><td class="ln">243</td><td class="src">        </td></tr>
+<tr><td class="ln">244</td><td class="src">        </td></tr>
+<tr><td class="ln">245</td><td class="src">        %==================================================================</td></tr>
+</table></div>
+<div class="note"><code>set.eyesWithData</code>：属性设值函数，赋值时自动检查合法值（left/right/mean）。相当于 R 里自己写一个 setter 做 <code>stopifnot()</code>。</p></div>
+<div class="code"><table>
+<tr><td class="ln">246</td><td class="src">        function checkScalarCall(obj)</td></tr>
+<tr><td class="ln">247</td><td class="src">            %checkScalarCall Checks if call was scalar.</td></tr>
+<tr><td class="ln">248</td><td class="src">            %</td></tr>
+<tr><td class="ln">249</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">250</td><td class="src">            </td></tr>
+<tr><td class="ln">251</td><td class="src">            keyboard;</td></tr>
+<tr><td class="ln">252</td><td class="src">            </td></tr>
+<tr><td class="ln">253</td><td class="src">            if ~isscalar(obj)</td></tr>
+<tr><td class="ln">254</td><td class="src">                error(&#x27;This method is only suitable for scalar calls.&#x27;)</td></tr>
+<tr><td class="ln">255</td><td class="src">            end</td></tr>
+<tr><td class="ln">256</td><td class="src">        end</td></tr>
+<tr><td class="ln">257</td><td class="src">        </td></tr>
+<tr><td class="ln">258</td><td class="src">    end</td></tr>
+</table></div>
+<div class="note"><b>这里有个需要注意的地方</b>：<code>checkScalarCall</code> 里第 251 行是一句裸的 <code>keyboard;</code>。这是原作者留下的<b>调试断点</b>——一旦这个方法被调用，MATLAB 会<b>停在调试器里等你输入</b>。我们的管线没调用它，所以从来没触发；但如果你改代码时碰到了，会以为程序“卡住”。记住它在这里。</p></div>
+<div class="code"><table>
+<tr><td class="ln">266</td><td class="src">        function filterRawData(objArray)</td></tr>
+<tr><td class="ln">267</td><td class="src">            %filterRawData Filters the raw data.</td></tr>
+<tr><td class="ln">268</td><td class="src">            %</td></tr>
+<tr><td class="ln">269</td><td class="src">            %   filterRawData(objArray)</td></tr>
+<tr><td class="ln">270</td><td class="src">            %</td></tr>
+<tr><td class="ln">271</td><td class="src">            %    objArray is PupilDataModel object or array.</td></tr>
+<tr><td class="ln">272</td><td class="src">            %</td></tr>
+<tr><td class="ln">273</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">274</td><td class="src">            </td></tr>
+<tr><td class="ln">275</td><td class="src">            % Print feedback:</td></tr>
+<tr><td class="ln">276</td><td class="src">            printToConsole(&#x27;L1&#x27;);</td></tr>
+<tr><td class="ln">277</td><td class="src">            printToConsole(2,...</td></tr>
+<tr><td class="ln">278</td><td class="src">                &#x27;Filtering the raw data in %i files...\n&#x27;...</td></tr>
+<tr><td class="ln">279</td><td class="src">                ,numel(objArray));</td></tr>
+<tr><td class="ln">280</td><td class="src">            </td></tr>
+<tr><td class="ln">281</td><td class="src">            % Loop through input objects:</td></tr>
+<tr><td class="ln">282</td><td class="src">            for curDataIndx = 1:numel(objArray)</td></tr>
+<tr><td class="ln">283</td><td class="src">                </td></tr>
+<tr><td class="ln">284</td><td class="src">                % Get current object:</td></tr>
+<tr><td class="ln">285</td><td class="src">                obj = objArray(curDataIndx);</td></tr>
+<tr><td class="ln">286</td><td class="src">                </td></tr>
+<tr><td class="ln">287</td><td class="src">                % Remove out of bounds samples, for all available eyes:</td></tr>
+<tr><td class="ln">288</td><td class="src">                for curEye = obj.eyesWithData</td></tr>
+<tr><td class="ln">289</td><td class="src">                    </td></tr>
+<tr><td class="ln">290</td><td class="src">                    % Print feedback:</td></tr>
+<tr><td class="ln">291</td><td class="src">                    printToConsole(3,&#x27;File %i (%s) %s eye:\n&#x27;...</td></tr>
+<tr><td class="ln">292</td><td class="src">                        ,curDataIndx,obj.filename,curEye{1});</td></tr>
+<tr><td class="ln">293</td><td class="src">                    </td></tr>
+<tr><td class="ln">294</td><td class="src">                    % Filter the current eye&#x27;s data:</td></tr>
+<tr><td class="ln">295</td><td class="src">                    obj.([curEye{1} ...</td></tr>
+<tr><td class="ln">296</td><td class="src">                        &#x27;Pupil_RawData&#x27;]).filterData();</td></tr>
+<tr><td class="ln">297</td><td class="src">                    </td></tr>
+<tr><td class="ln">298</td><td class="src">                end</td></tr>
+<tr><td class="ln">299</td><td class="src">            end</td></tr>
+<tr><td class="ln">300</td><td class="src">            </td></tr>
+<tr><td class="ln">301</td><td class="src">            % Print feedback:</td></tr>
+<tr><td class="ln">302</td><td class="src">            printToConsole(2,&#x27;Done\n&#x27;);</td></tr>
+<tr><td class="ln">303</td><td class="src">            </td></tr>
+<tr><td class="ln">304</td><td class="src">        end</td></tr>
+<tr><td class="ln">305</td><td class="src">        </td></tr>
+<tr><td class="ln">306</td><td class="src">        </td></tr>
+</table></div>
+<div class="note"><code>filterRawData</code>：遍历对象数组，再遍历每只眼，调用 <code>RawSamplesModel.filterData()</code>。它自己不滤波，只是调度。</p><p>这种“循环 + 转发”是整类的骨架：**每个方法都一样，真正干活的是被调用的类**。所以读懂这一个方法，其余几个结构相同。</p></div>
+<div class="code"><table>
+<tr><td class="ln">308</td><td class="src">        function processValidSamples(objArray)</td></tr>
+<tr><td class="ln">309</td><td class="src">            %processValidSamples Processes the valid raw samples.</td></tr>
+<tr><td class="ln">310</td><td class="src">            %</td></tr>
+<tr><td class="ln">311</td><td class="src">            %   processValidSamples(objArray)</td></tr>
+<tr><td class="ln">312</td><td class="src">            %</td></tr>
+<tr><td class="ln">313</td><td class="src">            %    objArray is PupilDataModel object or array.</td></tr>
+<tr><td class="ln">314</td><td class="src">            %</td></tr>
+<tr><td class="ln">315</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">316</td><td class="src">            </td></tr>
+<tr><td class="ln">317</td><td class="src">            % Print feedback:</td></tr>
+<tr><td class="ln">318</td><td class="src">            printToConsole(&#x27;L1&#x27;);</td></tr>
+<tr><td class="ln">319</td><td class="src">            printToConsole(2,[&#x27;Interpolating and smooting the&#x27;...</td></tr>
+<tr><td class="ln">320</td><td class="src">                &#x27; valid raw data subsets of %i files...\n&#x27;]...</td></tr>
+<tr><td class="ln">321</td><td class="src">                ,numel(objArray));</td></tr>
+<tr><td class="ln">322</td><td class="src">            </td></tr>
+<tr><td class="ln">323</td><td class="src">            % Loop through input objects:</td></tr>
+<tr><td class="ln">324</td><td class="src">            for curDataIndx = 1:numel(objArray)</td></tr>
+<tr><td class="ln">325</td><td class="src">                </td></tr>
+<tr><td class="ln">326</td><td class="src">                % Get handle to current file:</td></tr>
+<tr><td class="ln">327</td><td class="src">                obj = objArray(curDataIndx);</td></tr>
+<tr><td class="ln">328</td><td class="src">                </td></tr>
+<tr><td class="ln">329</td><td class="src">                % Print feedback:</td></tr>
+<tr><td class="ln">330</td><td class="src">                printToConsole(3,&#x27;File %i (%s):\n&#x27;...</td></tr>
+<tr><td class="ln">331</td><td class="src">                    ,curDataIndx,obj.filename);</td></tr>
+<tr><td class="ln">332</td><td class="src">                </td></tr>
+<tr><td class="ln">333</td><td class="src">                % Process eyes:</td></tr>
+<tr><td class="ln">334</td><td class="src">                for curEye = obj.eyesWithData</td></tr>
+<tr><td class="ln">335</td><td class="src">                    </td></tr>
+<tr><td class="ln">336</td><td class="src">                    % Initialize the data model, and set its properties:</td></tr>
+<tr><td class="ln">337</td><td class="src">                    validSampleRows = obj.([curEye{1} ...</td></tr>
+<tr><td class="ln">338</td><td class="src">                        &#x27;Pupil_RawData&#x27;]).isValid;</td></tr>
+<tr><td class="ln">339</td><td class="src">                    samples.t_ms    = obj.timestamps_RawData_ms(...</td></tr>
+<tr><td class="ln">340</td><td class="src">                        validSampleRows);</td></tr>
+<tr><td class="ln">341</td><td class="src">                    samples.pupilDiameter ...</td></tr>
+<tr><td class="ln">342</td><td class="src">                        = obj.([curEye{1} &#x27;Pupil_RawData&#x27;]).rawSample(...</td></tr>
+<tr><td class="ln">343</td><td class="src">                        validSampleRows);</td></tr>
+<tr><td class="ln">344</td><td class="src">                    validFraction = sum(validSampleRows)...</td></tr>
+<tr><td class="ln">345</td><td class="src">                        /sum(~isnan(obj.([curEye{1} &#x27;Pupil_RawData&#x27;])...</td></tr>
+<tr><td class="ln">346</td><td class="src">                        .rawSample));</td></tr>
+<tr><td class="ln">347</td><td class="src">                    obj.([curEye{1} &#x27;Pupil_ValidSamples&#x27;]) ...</td></tr>
+<tr><td class="ln">348</td><td class="src">                        = ValidSamplesModel(curEye{1},obj,samples...</td></tr>
+<tr><td class="ln">349</td><td class="src">                        ,validFraction);</td></tr>
+<tr><td class="ln">350</td><td class="src">                    </td></tr>
+<tr><td class="ln">351</td><td class="src">                    % Print feedback:</td></tr>
+<tr><td class="ln">352</td><td class="src">                    printToConsole(4,&#x27;%s eye done.\n&#x27;...</td></tr>
+<tr><td class="ln">353</td><td class="src">                        ,curEye{1});</td></tr>
+<tr><td class="ln">354</td><td class="src">                    </td></tr>
+<tr><td class="ln">355</td><td class="src">                    clear validSampleRows validFraction samples</td></tr>
+<tr><td class="ln">356</td><td class="src">                    </td></tr>
+<tr><td class="ln">357</td><td class="src">                end</td></tr>
+<tr><td class="ln">358</td><td class="src">                </td></tr>
+<tr><td class="ln">359</td><td class="src">                % If both eyes are present, generate the mean pupil</td></tr>
+<tr><td class="ln">360</td><td class="src">                % diameter sample timeseries:</td></tr>
+<tr><td class="ln">361</td><td class="src">                if length(obj.eyesWithData)==2</td></tr>
+<tr><td class="ln">362</td><td class="src">                    meanDia = ...</td></tr>
+<tr><td class="ln">363</td><td class="src">                        genMeanDiaSamples(obj.timestamps_RawData_ms...</td></tr>
+<tr><td class="ln">364</td><td class="src">                        ,obj.(&#x27;leftPupil_RawData&#x27;).rawSample...</td></tr>
+<tr><td class="ln">365</td><td class="src">                        ,obj.(&#x27;rightPupil_RawData&#x27;).rawSample...</td></tr>
+<tr><td class="ln">366</td><td class="src">                        ,obj.(&#x27;leftPupil_RawData&#x27;).isValid...</td></tr>
+<tr><td class="ln">367</td><td class="src">                        ,obj.(&#x27;rightPupil_RawData&#x27;).isValid...</td></tr>
+<tr><td class="ln">368</td><td class="src">                        );</td></tr>
+<tr><td class="ln">369</td><td class="src">                    validFraction ...</td></tr>
+<tr><td class="ln">370</td><td class="src">                        = min(...</td></tr>
+<tr><td class="ln">371</td><td class="src">                        obj.leftPupil_ValidSamples.validFraction...</td></tr>
+<tr><td class="ln">372</td><td class="src">                        ,obj.rightPupil_ValidSamples.validFraction);</td></tr>
+<tr><td class="ln">373</td><td class="src">                    samples.t_ms ...</td></tr>
+<tr><td class="ln">374</td><td class="src">                        = obj.timestamps_RawData_ms(~isnan(meanDia));</td></tr>
+<tr><td class="ln">375</td><td class="src">                    samples.pupilDiameter ...</td></tr>
+<tr><td class="ln">376</td><td class="src">                        = meanDia(~isnan(meanDia));</td></tr>
+<tr><td class="ln">377</td><td class="src">                    obj.meanPupil_ValidSamples ...</td></tr>
+<tr><td class="ln">378</td><td class="src">                        = ValidSamplesModel(&#x27;mean&#x27;,obj,samples...</td></tr>
+<tr><td class="ln">379</td><td class="src">                        ,validFraction);</td></tr>
+<tr><td class="ln">380</td><td class="src">                    printToConsole(4,&#x27;Mean pupil diameter done.\n&#x27;);</td></tr>
+<tr><td class="ln">381</td><td class="src">                end</td></tr>
+<tr><td class="ln">382</td><td class="src">                </td></tr>
+<tr><td class="ln">383</td><td class="src">            end</td></tr>
+<tr><td class="ln">384</td><td class="src">            </td></tr>
+<tr><td class="ln">385</td><td class="src">            % Print feedback:</td></tr>
+<tr><td class="ln">386</td><td class="src">            printToConsole(2,&#x27;Done\n&#x27;);</td></tr>
+<tr><td class="ln">387</td><td class="src">            printToConsole(&#x27;L2&#x27;);</td></tr>
+<tr><td class="ln">388</td><td class="src">            </td></tr>
+<tr><td class="ln">389</td><td class="src">        end</td></tr>
+<tr><td class="ln">390</td><td class="src">        </td></tr>
+<tr><td class="ln">391</td><td class="src">        </td></tr>
+</table></div>
+<div class="note"><code>processValidSamples</code>：拿 <code>isValid</code> 为真的样本，插值 + 平滑，生成一个新的 <code>ValidSamplesModel</code> 对象。从这里开始，“有效样本”和“平滑信号”是两个不同的对象。</p></div>
+<div class="code"><table>
+<tr><td class="ln">393</td><td class="src">        function resultsCell = analyzeSegments(objArray)</td></tr>
+<tr><td class="ln">394</td><td class="src">            %analyzeSegments Analyzes the segmented data.</td></tr>
+<tr><td class="ln">395</td><td class="src">            %</td></tr>
+<tr><td class="ln">396</td><td class="src">            %   resultsCell = analyzeSegments(objArray)</td></tr>
+<tr><td class="ln">397</td><td class="src">            %</td></tr>
+<tr><td class="ln">398</td><td class="src">            %    objArray is PupilDataModel object or array.</td></tr>
+<tr><td class="ln">399</td><td class="src">            %</td></tr>
+<tr><td class="ln">400</td><td class="src">            %    resultsCell is a cell array with each cell containing the</td></tr>
+<tr><td class="ln">401</td><td class="src">            %    results table for the corresponding objects in the</td></tr>
+<tr><td class="ln">402</td><td class="src">            %    objArray.</td></tr>
+<tr><td class="ln">403</td><td class="src">            %</td></tr>
+<tr><td class="ln">404</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">405</td><td class="src">            </td></tr>
+<tr><td class="ln">406</td><td class="src">            % Print feedback:</td></tr>
+<tr><td class="ln">407</td><td class="src">            printToConsole(&#x27;L1&#x27;);</td></tr>
+<tr><td class="ln">408</td><td class="src">            printToConsole(2,&#x27;Analyzing %i files...\n&#x27;...</td></tr>
+<tr><td class="ln">409</td><td class="src">                ,numel(objArray));</td></tr>
+<tr><td class="ln">410</td><td class="src">            </td></tr>
+<tr><td class="ln">411</td><td class="src">            % Preallocate a struct for holding the results:</td></tr>
+<tr><td class="ln">412</td><td class="src">            resultsCell = cell(numel(objArray),1);</td></tr>
+<tr><td class="ln">413</td><td class="src">            </td></tr>
+<tr><td class="ln">414</td><td class="src">            % Loop through input objects:</td></tr>
+<tr><td class="ln">415</td><td class="src">            for curDataIndx = 1:numel(objArray)</td></tr>
+<tr><td class="ln">416</td><td class="src">                </td></tr>
+<tr><td class="ln">417</td><td class="src">                % Get handle to current file:</td></tr>
+<tr><td class="ln">418</td><td class="src">                obj = objArray(curDataIndx);</td></tr>
+<tr><td class="ln">419</td><td class="src">                </td></tr>
+<tr><td class="ln">420</td><td class="src">                % Print feedback:</td></tr>
+<tr><td class="ln">421</td><td class="src">                printToConsole(3 ...</td></tr>
+<tr><td class="ln">422</td><td class="src">                    ,&#x27;File %i (%s): analyzing %i segments.\n&#x27;...</td></tr>
+<tr><td class="ln">423</td><td class="src">                    ,curDataIndx,obj.filename,size(obj.segmentsTable,1));</td></tr>
+<tr><td class="ln">424</td><td class="src">                </td></tr>
+<tr><td class="ln">425</td><td class="src">                % Merge results, and save to master cell:</td></tr>
+<tr><td class="ln">426</td><td class="src">                resultsCell{curDataIndx} = obj.analyzeSegmentsScalar(...</td></tr>
+<tr><td class="ln">427</td><td class="src">                    obj.segmentsTable);</td></tr>
+<tr><td class="ln">428</td><td class="src">                </td></tr>
+<tr><td class="ln">429</td><td class="src">            end</td></tr>
+<tr><td class="ln">430</td><td class="src">            </td></tr>
+<tr><td class="ln">431</td><td class="src">            % Print feedback:</td></tr>
+<tr><td class="ln">432</td><td class="src">            printToConsole(2,&#x27;Done\n&#x27;);</td></tr>
+<tr><td class="ln">433</td><td class="src">            printToConsole(&#x27;L2&#x27;);</td></tr>
+<tr><td class="ln">434</td><td class="src">            </td></tr>
+<tr><td class="ln">435</td><td class="src">        end</td></tr>
+<tr><td class="ln">436</td><td class="src">        </td></tr>
+<tr><td class="ln">437</td><td class="src">        </td></tr>
+<tr><td class="ln">438</td><td class="src">        %==================================================================</td></tr>
+</table></div>
+<div class="note"><code>analyzeSegments</code>：对每条记录调 <code>analyzeSegmentsScalar</code>，把结果收进 cell 数组。注意返回的是 <b>cell</b> 不是表——每个被试一张表，要用 <code>vertcat(results{:})</code> 合起来。我们的 <code>example_kret_pipeline</code> 就是这么做的。</p></div>
+<div class="code"><table>
+<tr><td class="ln">439</td><td class="src">        function exportSegments(objArray, outputFolder, options)</td></tr>
+<tr><td class="ln">440</td><td class="src">            % exportSegments Writes each segment&#x27;s smooth signal per-file CSV.</td></tr>
+<tr><td class="ln">441</td><td class="src">            %</td></tr>
+<tr><td class="ln">442</td><td class="src">            %   exportSegments(hPupilData, outputFolder)</td></tr>
+<tr><td class="ln">443</td><td class="src">            %   exportSegments(hPupilData, outputFolder, options)</td></tr>
+<tr><td class="ln">444</td><td class="src">            %</td></tr>
+<tr><td class="ln">445</td><td class="src">            %    options is a struct with any of the following fields</td></tr>
+<tr><td class="ln">446</td><td class="src">            %    (or &#x27;name&#x27;,value pairs):</td></tr>
+<tr><td class="ln">447</td><td class="src">            %       Eyes         cellstr, subset of {&#x27;left&#x27;,&#x27;right&#x27;,&#x27;mean&#x27;};</td></tr>
+<tr><td class="ln">448</td><td class="src">            %                    default: all eyes that have processed data</td></tr>
+<tr><td class="ln">449</td><td class="src">            %       SegmentTypes cellstr; default: all types present in</td></tr>
+<tr><td class="ln">450</td><td class="src">            %                    the segmentsTable</td></tr>
+<tr><td class="ln">451</td><td class="src">            %       NaNString    how to write NaN pupil samples</td></tr>
+<tr><td class="ln">452</td><td class="src">            %                    (default &#x27;NaN&#x27;; &#x27;&#x27; writes an empty cell)</td></tr>
+<tr><td class="ln">453</td><td class="src">            %       ZScore       false (default); true adds a</td></tr>
+<tr><td class="ln">454</td><td class="src">            %                    pupilDiameterZ column = (value - mean)/sd</td></tr>
+<tr><td class="ln">455</td><td class="src">            %                    of the non-NaN smooth signal of the WHOLE</td></tr>
+<tr><td class="ln">456</td><td class="src">            %                    recording (per eye, per subject) — the</td></tr>
+<tr><td class="ln">457</td><td class="src">            %                    Leuchs 2017 whole-recording z-score</td></tr>
+<tr><td class="ln">458</td><td class="src">            %</td></tr>
+<tr><td class="ln">459</td><td class="src">            %    For every PupilDataModel instance, one CSV is written per</td></tr>
+<tr><td class="ln">460</td><td class="src">            %    eye, named &#x27;&lt;filename&gt;_&lt;eye&gt;pupil_segments.csv&#x27;, with the</td></tr>
+<tr><td class="ln">461</td><td class="src">            %    columns:</td></tr>
+<tr><td class="ln">462</td><td class="src">            %       segmentName, segmentType, segmentStart_s, tRel_s,</td></tr>
+<tr><td class="ln">463</td><td class="src">            %       pupilDiameter_&lt;unit&gt;, gap_ms [, pupilDiameterZ]</td></tr>
+<tr><td class="ln">464</td><td class="src">            %    Rows are the upsampled smooth-signal samples inside each</td></tr>
+<tr><td class="ln">465</td><td class="src">            %    segment ([segmentStart, segmentEnd)); samples that were</td></tr>
+<tr><td class="ln">466</td><td class="src">            %    interpolated over too-large gaps are NaN (see</td></tr>
+<tr><td class="ln">467</td><td class="src">            %    ValidSamplesModel.interpAndSmooth).</td></tr>
+<tr><td class="ln">468</td><td class="src">            %</td></tr>
+<tr><td class="ln">469</td><td class="src">            %    This provides what analyzeSegments&#x27; descriptive stats</td></tr>
+<tr><td class="ln">470</td><td class="src">            %    cannot: the continuous, event-locked time courses needed</td></tr>
+<tr><td class="ln">471</td><td class="src">            %    for windowed peak extraction, per-bin averaging, or</td></tr>
+<tr><td class="ln">472</td><td class="src">            %    GAMM-style trajectory models.</td></tr>
+<tr><td class="ln">473</td><td class="src">            %</td></tr>
+<tr><td class="ln">474</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">475</td><td class="src"></td></tr>
+<tr><td class="ln">476</td><td class="src">            % Parse options struct:</td></tr>
+<tr><td class="ln">477</td><td class="src">            if nargin &lt; 3, options = struct(); end</td></tr>
+<tr><td class="ln">478</td><td class="src">            if ~isstruct(options)</td></tr>
+<tr><td class="ln">479</td><td class="src">                error(&#x27;exportSegments:BadOptions&#x27;...</td></tr>
+<tr><td class="ln">480</td><td class="src">                    ,&#x27;Options must be a struct.&#x27;);</td></tr>
+<tr><td class="ln">481</td><td class="src">            end</td></tr>
+<tr><td class="ln">482</td><td class="src">            if ~isfield(options,&#x27;Eyes&#x27;)...</td></tr>
+<tr><td class="ln">483</td><td class="src">                    || isempty(options.Eyes)</td></tr>
+<tr><td class="ln">484</td><td class="src">                options.Eyes = {};</td></tr>
+<tr><td class="ln">485</td><td class="src">            end</td></tr>
+<tr><td class="ln">486</td><td class="src">            if ~isfield(options,&#x27;SegmentTypes&#x27;)...</td></tr>
+<tr><td class="ln">487</td><td class="src">                    || isempty(options.SegmentTypes)</td></tr>
+<tr><td class="ln">488</td><td class="src">                options.SegmentTypes = {};</td></tr>
+<tr><td class="ln">489</td><td class="src">            end</td></tr>
+<tr><td class="ln">490</td><td class="src">            if ~isfield(options,&#x27;NaNString&#x27;)</td></tr>
+<tr><td class="ln">491</td><td class="src">                options.NaNString = &#x27;NaN&#x27;;</td></tr>
+<tr><td class="ln">492</td><td class="src">            end</td></tr>
+<tr><td class="ln">493</td><td class="src">            if ~isfield(options,&#x27;ZScore&#x27;)</td></tr>
+<tr><td class="ln">494</td><td class="src">                options.ZScore = false;</td></tr>
+<tr><td class="ln">495</td><td class="src">            end</td></tr>
+<tr><td class="ln">496</td><td class="src"></td></tr>
+<tr><td class="ln">497</td><td class="src">            if ~exist(outputFolder,&#x27;dir&#x27;), mkdir(outputFolder); end</td></tr>
+<tr><td class="ln">498</td><td class="src"></td></tr>
+<tr><td class="ln">499</td><td class="src">            for curDataIndx = 1:numel(objArray)</td></tr>
+<tr><td class="ln">500</td><td class="src"></td></tr>
+</table></div>
+<div class="note"><code>exportSegments</code>：把每个段的 1000 Hz 曲线写成 CSV。第 497 行 <code>mkdir</code> 保证输出目录存在。</p></div>
+<div class="code"><table>
+<tr><td class="ln">813</td><td class="src">        function analTableOut = analyzeSegmentsScalar(obj,segmentDataIn)</td></tr>
+<tr><td class="ln">814</td><td class="src">            % analyzeSegmentsScalar Analyzes a single object&#x27;s segments.</td></tr>
+<tr><td class="ln">815</td><td class="src">            %</td></tr>
+<tr><td class="ln">816</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">817</td><td class="src">            </td></tr>
+<tr><td class="ln">818</td><td class="src">            assert(isscalar(obj)...</td></tr>
+<tr><td class="ln">819</td><td class="src">                ,&#x27;This method can only be called with a scalar object.&#x27;)</td></tr>
+<tr><td class="ln">820</td><td class="src">            </td></tr>
+<tr><td class="ln">821</td><td class="src">            % Run analysis scripts:</td></tr>
+<tr><td class="ln">822</td><td class="src">            for curEye = {&#x27;left&#x27; &#x27;right&#x27; &#x27;mean&#x27;}</td></tr>
+<tr><td class="ln">823</td><td class="src">                if ~isempty(obj.([curEye{1} ...</td></tr>
+<tr><td class="ln">824</td><td class="src">                        &#x27;Pupil_ValidSamples&#x27;]))</td></tr>
+<tr><td class="ln">825</td><td class="src">                    analtable.(curEye{1}) = obj.([curEye{1} ...</td></tr>
+<tr><td class="ln">826</td><td class="src">                        &#x27;Pupil_ValidSamples&#x27;])...</td></tr>
+<tr><td class="ln">827</td><td class="src">                        .analyze(segmentDataIn);</td></tr>
+<tr><td class="ln">828</td><td class="src">                    printToConsole(4,...</td></tr>
+<tr><td class="ln">829</td><td class="src">                        &#x27;Done analyzing %s pupil diameters.\n&#x27;...</td></tr>
+<tr><td class="ln">830</td><td class="src">                        ,curEye{1});</td></tr>
+<tr><td class="ln">831</td><td class="src">                else</td></tr>
+<tr><td class="ln">832</td><td class="src">                    analtable.(curEye{1}) = [];</td></tr>
+<tr><td class="ln">833</td><td class="src">                end</td></tr>
+<tr><td class="ln">834</td><td class="src">            end</td></tr>
+<tr><td class="ln">835</td><td class="src">            analTableOut = horzcat(segmentDataIn...</td></tr>
+<tr><td class="ln">836</td><td class="src">                ,analtable.left,analtable.right,analtable.mean);</td></tr>
+<tr><td class="ln">837</td><td class="src">            </td></tr>
+<tr><td class="ln">838</td><td class="src">        end</td></tr>
+<tr><td class="ln">839</td><td class="src">        </td></tr>
+<tr><td class="ln">840</td><td class="src">        </td></tr>
+<tr><td class="ln">841</td><td class="src">    end</td></tr>
+<tr><td class="ln">842</td><td class="src">    </td></tr>
+<tr><td class="ln">843</td><td class="src">    </td></tr>
+<tr><td class="ln">844</td><td class="src">    %% Static Methods:</td></tr>
+<tr><td class="ln">845</td><td class="src">    </td></tr>
+<tr><td class="ln">846</td><td class="src">    </td></tr>
+<tr><td class="ln">847</td><td class="src">    methods (Static)</td></tr>
+<tr><td class="ln">848</td><td class="src">        </td></tr>
+<tr><td class="ln">849</td><td class="src">        </td></tr>
+<tr><td class="ln">850</td><td class="src">        %==================================================================</td></tr>
+</table></div>
+<div class="note"><code>analyzeSegmentsScalar</code>：真正算统计的地方——对一个段里的平滑信号和有效样本各算一套 mean / min / max / 缺失率，这就是 <code>04_all_segments.csv</code> 里那 12 列的来源。</p></div>
+<div class="code"><table>
+<tr><td class="ln">851</td><td class="src">        function hPupilData = batchConstructor(filepath,dirStruct,settings)</td></tr>
+<tr><td class="ln">852</td><td class="src">            % batchConstructor Constructs a PupilDataModel array.</td></tr>
+<tr><td class="ln">853</td><td class="src">            %</td></tr>
+<tr><td class="ln">854</td><td class="src">            %   hPupilData = batchConstructor(filepath,dirStruct,settings)</td></tr>
+<tr><td class="ln">855</td><td class="src">            %</td></tr>
+<tr><td class="ln">856</td><td class="src">            %    filepath is the path to the folder where the files are</td></tr>
+<tr><td class="ln">857</td><td class="src">            %    located.</td></tr>
+<tr><td class="ln">858</td><td class="src">            %</td></tr>
+<tr><td class="ln">859</td><td class="src">            %    dirStruct is a struct array containing the file names.</td></tr>
+<tr><td class="ln">860</td><td class="src">            %    Generate the dirStruct using the dir command, e.g.:</td></tr>
+<tr><td class="ln">861</td><td class="src">            %</td></tr>
+<tr><td class="ln">862</td><td class="src">            %       rawFiles = dir([folderName &#x27;*.mat&#x27;]);</td></tr>
+<tr><td class="ln">863</td><td class="src">            %</td></tr>
+<tr><td class="ln">864</td><td class="src">            %       Note that the .mat files found by the dir function must</td></tr>
+<tr><td class="ln">865</td><td class="src">            %       comply with the specific requirements, see the</td></tr>
+<tr><td class="ln">866</td><td class="src">            %       RawFileModel class.</td></tr>
+<tr><td class="ln">867</td><td class="src">            %</td></tr>
+<tr><td class="ln">868</td><td class="src">            %    settings is a struct containing the settings to use when</td></tr>
+<tr><td class="ln">869</td><td class="src">            %    processing the files. Use the following command to</td></tr>
+<tr><td class="ln">870</td><td class="src">            %    generate a standard settings struct, which you can then</td></tr>
+<tr><td class="ln">871</td><td class="src">            %    modify is required:</td></tr>
+<tr><td class="ln">872</td><td class="src">            %</td></tr>
+<tr><td class="ln">873</td><td class="src">            %      settingsOut = PupilDataModel.getDefaultSettings();</td></tr>
+<tr><td class="ln">874</td><td class="src">            %</td></tr>
+<tr><td class="ln">875</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">876</td><td class="src">            </td></tr>
+<tr><td class="ln">877</td><td class="src">            % Disp information:</td></tr>
+<tr><td class="ln">878</td><td class="src">            nFiles = length(dirStruct);</td></tr>
+<tr><td class="ln">879</td><td class="src">            printToConsole(&#x27;L1&#x27;);</td></tr>
+<tr><td class="ln">880</td><td class="src">            printToConsole(1, &#x27;Constructing %i Data Objects...\n&#x27;...</td></tr>
+<tr><td class="ln">881</td><td class="src">                ,nFiles);</td></tr>
+<tr><td class="ln">882</td><td class="src">            </td></tr>
+<tr><td class="ln">883</td><td class="src">            % Loop through files:</td></tr>
+<tr><td class="ln">884</td><td class="src">            hPupilDataC = cell(nFiles,1);</td></tr>
+<tr><td class="ln">885</td><td class="src">            for fileIndx = 1:nFiles</td></tr>
+<tr><td class="ln">886</td><td class="src">                hPupilDataC{fileIndx} = PupilDataModel(filepath...</td></tr>
+<tr><td class="ln">887</td><td class="src">                    ,dirStruct(fileIndx).name,settings);</td></tr>
+<tr><td class="ln">888</td><td class="src">                printToConsole(3,&#x27;File %i (%s): Object constructed.\n&#x27;...</td></tr>
+<tr><td class="ln">889</td><td class="src">                    ,fileIndx,dirStruct(fileIndx).name);</td></tr>
+<tr><td class="ln">890</td><td class="src">                </td></tr>
+<tr><td class="ln">891</td><td class="src">            end</td></tr>
+<tr><td class="ln">892</td><td class="src">            printToConsole(2, &#x27;Done with folder.\n&#x27;);</td></tr>
+<tr><td class="ln">893</td><td class="src">            printToConsole(&#x27;L2&#x27;);</td></tr>
+<tr><td class="ln">894</td><td class="src">            hPupilData = vertcat(hPupilDataC{:});</td></tr>
+<tr><td class="ln">895</td><td class="src">            </td></tr>
+<tr><td class="ln">896</td><td class="src">        end</td></tr>
+<tr><td class="ln">897</td><td class="src">        </td></tr>
+<tr><td class="ln">898</td><td class="src">        </td></tr>
+<tr><td class="ln">899</td><td class="src">        %==================================================================</td></tr>
+</table></div>
+<div class="note"><code>batchConstructor</code>（静态方法）：给一个文件夹，对 <code>dir('*.mat')</code> 的每个文件建对象，最后 <code>vertcat</code> 成对象数组。</p><p>R 里相当于 <code>lapply(files, read_one)</code> 然后 <code>do.call(rbind, ...)</code>。</p></div>
+<div class="code"><table>
+<tr><td class="ln">900</td><td class="src">        function settingsOut = getDefaultSettings()</td></tr>
+<tr><td class="ln">901</td><td class="src">            % getDefaultSettings Returns a struct containing stanadard</td></tr>
+<tr><td class="ln">902</td><td class="src">            % settings.</td></tr>
+<tr><td class="ln">903</td><td class="src">            %</td></tr>
+<tr><td class="ln">904</td><td class="src">            %   settingsOut = getDefaultSettings()</td></tr>
+<tr><td class="ln">905</td><td class="src">            %</td></tr>
+<tr><td class="ln">906</td><td class="src">            %    See the RawSamplesModel and ValidSamplesModel classes for</td></tr>
+<tr><td class="ln">907</td><td class="src">            %    info about their settings.</td></tr>
+<tr><td class="ln">908</td><td class="src">            %</td></tr>
+<tr><td class="ln">909</td><td class="src">            %--------------------------------------------------------------</td></tr>
+<tr><td class="ln">910</td><td class="src">            </td></tr>
+<tr><td class="ln">911</td><td class="src">            settingsOut.raw   = RawSamplesModel.getDefaultSettings();</td></tr>
+<tr><td class="ln">912</td><td class="src">            settingsOut.valid = ValidSamplesModel.getDefaultSettings();</td></tr>
+<tr><td class="ln">913</td><td class="src">            </td></tr>
+<tr><td class="ln">914</td><td class="src">        end</td></tr>
+<tr><td class="ln">915</td><td class="src">        </td></tr>
+<tr><td class="ln">916</td><td class="src">        </td></tr>
+<tr><td class="ln">917</td><td class="src">        %==================================================================</td></tr>
+</table></div>
+<div class="note"><code>getDefaultSettings</code>：把两个子类的默认设置拼成一个结构体。所以“所有阈值在哪”这个问题，答案分散在 <code>RawSamplesModel</code> 和 <code>ValidSamplesModel</code> 里，这里是入口。</p></div>
+<div class="datawalk"><h3>落到你的数据上</h3>
+<p>在管线里的位置：<code>example_kret_pipeline.m</code> 大概这样做——</p>
+<pre><code>P = PupilDataModel.batchConstructor(folder, dir(fullfile(folder,'*.mat')), settings);
+P.filterRawData();          % 标出哪些样本有效
+P.processValidSamples();    % 插值 + 4 Hz 平滑
+res = P.analyzeSegments();  % 每个被试一张统计表
+T = vertcat(res{:});       % 合成一张</code></pre>
+<p>三条容易踩的：</p>
+<ul>
+<li><b>方法必须按顺序调。</b> <code>processValidSamples</code> 依赖 <code>isValid</code>，"
+跳过 <code>filterRawData</code> 会报错或算错。</li>
+<li><b>返回的是 cell。</b> 忘了 <code>vertcat</code> 会得到一堆分离的表。</li>
+<li><b>那个 <code>keyboard;</code>。</b> 见上面的注释。</li>
+</ul>
+</div>
+<details class="full"><summary>看完整原文（984 行，已逐行讲解 459 行）</summary><div class="code"><table>
 <tr><td class="ln">1</td><td class="src">classdef PupilDataModel &lt; handle</td></tr>
 <tr><td class="ln">2</td><td class="src">    %PupilDataModel Data model for holding pupil diameter data.</td></tr>
 <tr><td class="ln">3</td><td class="src">% EN: Orchestrates one recording end to end: read, filter, interpolate, segment, export.</td></tr>
@@ -4934,7 +5443,7 @@ trialQc = groupsummary(qcTable, ["participant","trial"], ...
 <tr><td class="ln">982</td><td class="src"></td></tr>
 <tr><td class="ln">983</td><td class="src"></td></tr>
 <tr><td class="ln">984</td><td class="src">&nbsp;</td></tr>
-</table></div>
+</table></div></details>
 </article><article id="code-dataModels-ValidSamplesModel-m" class="file">
 <h2><code>code/dataModels/ValidSamplesModel.m</code> <span class="lines">402 行</span></h2>
 <p class="summary">有效样本对象：把被判无效的样本插值掉，再低通平滑，得到连续的瞳孔信号。</p>
