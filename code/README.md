@@ -911,13 +911,13 @@ code/ymtc/                        in this repository
 代码_matlab/                      with the study data, not in this repository
   csv2kretmat.m                   259   the four segment definitions
   example_kret_pipeline.m         140   filter -> interpolate -> segment -> stats
-  ymtcTrialQC.m                   110   the three rejection rules
-  ymtcMergeResults.m              ~110  how the 69 columns are assembled
-  ymtcManipulationCheck.m           ?    joins the segment rows, runs the check
-  ymtcFilterPlots.m                 ?    filter diagnostics, writes PNG
+  ymtcTrialQC.m                   114   the three rejection rules
+  ymtcMergeResults.m              109   how the 69 columns are assembled
+  ymtcManipulationCheck.m         113   joins the segment rows, runs the check
+  ymtcFilterPlots.m                85   filter diagnostics, writes PNG
 ```
 
-`?` means the file is with the data and was not counted here. The last two are read on demand only: `ymtcManipulationCheck.m` when you are re-deriving a manipulation-check number, `ymtcFilterPlots.m` when you want to see what a filter threw away (it writes figures, not numbers).
+All line counts were taken from the files themselves. The last two are read on demand only: `ymtcManipulationCheck.m` when you are re-deriving a manipulation-check number, `ymtcFilterPlots.m` when you want to see what a filter threw away (it writes figures, not numbers).
 
 | read | what to confirm while reading | why it matters | time |
 |---|---|---|---|
@@ -1853,13 +1853,13 @@ code/ymtc/                        이 저장소
 代码_matlab/                      연구 데이터와 함께, 저장소에는 없음
   csv2kretmat.m                   259   네 구간 정의
   example_kret_pipeline.m         140   필터 -> 보간 -> 구간 -> 통계
-  ymtcTrialQC.m                   110   세 가지 제외 규칙
-  ymtcMergeResults.m              ~110  69개 열이 만들어지는 방식
-  ymtcManipulationCheck.m           ?    구간 행을 결합해 조작 점검 실행
-  ymtcFilterPlots.m                 ?    필터 진단, PNG 출력
+  ymtcTrialQC.m                   114   세 가지 제외 규칙
+  ymtcMergeResults.m              109   69개 열이 만들어지는 방식
+  ymtcManipulationCheck.m         113   구간 행을 결합해 조작 점검 실행
+  ymtcFilterPlots.m                85   필터 진단, PNG 출력
 ```
 
-`?`는 파일이 데이터 쪽에 있어 여기서 세지 않았다는 뜻이다. 마지막 두 개는 필요할 때만 읽는다: `ymtcManipulationCheck.m`은 조작 점검 수치를 다시 낼 때, `ymtcFilterPlots.m`은 필터가 무엇을 버렸는지 볼 때(숫자가 아니라 그림을 쓴다).
+줄 수는 모두 파일에서 직접 센 값이다. 마지막 두 개는 필요할 때만 읽는다: `ymtcManipulationCheck.m`은 조작 점검 수치를 다시 낼 때, `ymtcFilterPlots.m`은 필터가 무엇을 버렸는지 볼 때(숫자가 아니라 그림을 쓴다).
 
 | 읽기 | 읽으면서 확인할 것 | 왜 중요한가 | 시간 |
 |---|---|---|---|
@@ -2794,13 +2794,13 @@ code/ymtc/                        在本仓库里
 代码_matlab/                      和研究数据放在一起，不在仓库里
   csv2kretmat.m                   259   四个段的定义
   example_kret_pipeline.m         140   滤波 → 插值 → 分段 → 统计
-  ymtcTrialQC.m                   110   三条剔除规则
-  ymtcMergeResults.m              ~110  69 列是怎么拼出来的
-  ymtcManipulationCheck.m           ?    合起段的行，跑操作检验
-  ymtcFilterPlots.m                 ?    滤波诊断，出 PNG
+  ymtcTrialQC.m                   114   三条剔除规则
+  ymtcMergeResults.m              109   69 列是怎么拼出来的
+  ymtcManipulationCheck.m         113   合起段的行，跑操作检验
+  ymtcFilterPlots.m                85   滤波诊断，出 PNG
 ```
 
-`?` 表示文件在数据侧，这里没数行数。最后两个按需读：要重新得出操作检验的数字时读 `ymtcManipulationCheck.m`，想看滤波器丢了什么的时候读 `ymtcFilterPlots.m`（它出图，不出数）。
+行数都是从文件里直接数出来的。最后两个按需读：要重新得出操作检验的数字时读 `ymtcManipulationCheck.m`，想看滤波器丢了什么的时候读 `ymtcFilterPlots.m`（它出图，不出数）。
 
 | 读 | 读的时候确认什么 | 为什么重要 | 时间 |
 |---|---|---|---|
