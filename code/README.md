@@ -853,7 +853,42 @@ E-Prime + Tobii, TWO pupils. `batchFileConverter_Dataset2.m` (.gazedata → .mat
 - Pupil size is in camera pixels, from one eye; gaze is not recorded; the unit of `pupil_angle` and the meaning of the `sp_` prefix are unconfirmed.
 - This page describes what the code does, not whether the results are good. Data quality: [`../docs/05_data_quality.md`](../docs/05_data_quality.md).
 
-## 9. Further reading
+## 9. Review map: what to read, and in what order
+
+If you have to check this code yourself, this is the shortest route. Every path below is real; the line counts are taken from the files.
+
+```
+code/ymtc/                        in this repository
+  ymtcEventTable.m                184   the marker table itself
+  trk2csv.m                        87   one .trk -> one csv
+  private/readTrk.m                79   the text parser
+  private/labelSamples.m           46   events -> samples
+  private/checkTrk.m              134   what is recorded as an anomaly
+  ymtcEventTableBatch / RunCheck / TimingCheck / TrialWide   wrappers, skim
+
+代码_matlab/                      with the study data, not in this repository
+  csv2kretmat.m                   259   the four segment definitions
+  example_kret_pipeline.m         140   filter -> interpolate -> segment -> stats
+  ymtcTrialQC.m                   110   the three rejection rules
+  ymtcMergeResults.m              ~110  how the 69 columns are assembled
+```
+
+| read | what to confirm while reading | why it matters | time |
+|---|---|---|---|
+| 1. `ymtcEventTable.m` | the five marker/event pairs; how the trial order is chosen; where `condition` / `timing` / `certainty` / `outcome` come from; what `diff_s` is; why `run = ceil(trial/21)` | every claim about task conditions rests on this file | 40 min |
+| 2. `trk2csv.m` -> `private/readTrk.m` -> `labelSamples.m` -> `checkTrk.m` | how one csv row is built; what is recorded instead of repaired | the input of everything else | 60 min |
+| 3. `csv2kretmat.m` | the four segments and their windows; the time-zero convention | decides what "countdown" means in every pupil column | 30 min |
+| 4. `example_kret_pipeline.m` + `docs/03` | which filter runs when; what is a paper default and what we changed | the only place a number is produced | 40 min |
+| 5. `ymtcTrialQC.m` + `docs/05` | the three rules and their thresholds | decides which trials survive | 20 min |
+| 6. `ymtcMergeResults.m` | the join key (`participant` + `run` + `trial`) and the column order | explains the 69-column table | 20 min |
+
+Three routes, depending on how much time you have:
+
+- **30 minutes**: file 1 only, with the dictionary open on `docs/02` - enough to defend every column of the marker table.
+- **2 hours**: files 1-2, plus `checkDocs` - enough to defend the whole preparation layer.
+- **half a day**: all six - enough to defend every number in the final table.
+
+## 10. Further reading
 
 [`../docs/01_pipeline_overview.md`](../docs/01_pipeline_overview.md) · [`../docs/02_column_dictionary.md`](../docs/02_column_dictionary.md) · [`../docs/03_pupil_size_internals.md`](../docs/03_pupil_size_internals.md) · [`ymtc/README.md`](ymtc/README.md) · [`../docs/04_our_code.md`](../docs/04_our_code.md) · [`../docs/06_faq.md`](../docs/06_faq.md)
 
@@ -1714,7 +1749,42 @@ E-Prime + Tobii, **동공 둘**. `batchFileConverter_Dataset2.m`(.gazedata → .
 - 동공 크기는 카메라 픽셀 단위, 한쪽 눈 기준이다. 시선은 기록되지 않았다. `pupil_angle`의 단위와 `sp_` 접두사의 뜻은 확인되지 않았다.
 - 이 문서는 코드가 무엇을 하는지만 설명하며 결과가 좋은지는 판단하지 않는다. 데이터 품질: [`../docs/05_data_quality.md`](../docs/05_data_quality.md).
 
-## 9. 더 읽을 거리
+## 9. 검토 지도: 무엇을 어떤 순서로 읽을까
+
+이 코드를 직접 확인해야 한다면, 가장 짧은 경로는 이것이다. 아래 경로는 모두 실제 파일이고 줄 수는 파일에서 센 값이다.
+
+```
+code/ymtc/                        이 저장소
+  ymtcEventTable.m                184   마커 표 자체
+  trk2csv.m                        87   .trk 하나 -> csv 하나
+  private/readTrk.m                79   텍스트 파서
+  private/labelSamples.m           46   이벤트 -> 샘플
+  private/checkTrk.m              134   무엇을 이상치로 기록하는가
+  ymtcEventTableBatch / RunCheck / TimingCheck / TrialWide   래퍼, 훑어보기
+
+代码_matlab/                      연구 데이터와 함께, 저장소에는 없음
+  csv2kretmat.m                   259   네 구간 정의
+  example_kret_pipeline.m         140   필터 -> 보간 -> 구간 -> 통계
+  ymtcTrialQC.m                   110   세 가지 제외 규칙
+  ymtcMergeResults.m              ~110  69개 열이 만들어지는 방식
+```
+
+| 읽기 | 읽으면서 확인할 것 | 왜 중요한가 | 시간 |
+|---|---|---|---|
+| 1. `ymtcEventTable.m` | 다섯 마커/이벤트 쌍; trial order 선택 방식; `condition`/`timing`/`certainty`/`outcome`의 출처; `diff_s`의 의미; `run = ceil(trial/21)`인 이유 | 조건에 관한 모든 주장이 이 파일에 달려 있다 | 40분 |
+| 2. `trk2csv.m` -> `readTrk.m` -> `labelSamples.m` -> `checkTrk.m` | csv 한 행이 만들어지는 과정; 고치지 않고 기록하는 것 | 나머지 전부의 입력 | 60분 |
+| 3. `csv2kretmat.m` | 네 구간과 창; 시간 0 기준 | 모든 눈동자 열에서 "countdown"의 의미를 결정 | 30분 |
+| 4. `example_kret_pipeline.m` + `docs/03` | 어느 필터가 언제; 무엇이 논문 기본값이고 무엇을 바꿨는지 | 숫자가 생기는 유일한 곳 | 40분 |
+| 5. `ymtcTrialQC.m` + `docs/05` | 세 규칙과 임계값 | 어떤 trial이 살아남는지 결정 | 20분 |
+| 6. `ymtcMergeResults.m` | 조인 키(`participant`+`run`+`trial`)와 열 순서 | 69열 표를 설명 | 20분 |
+
+시간에 따른 세 가지 경로:
+
+- **30분**: 1번 파일만, `docs/02` 사전을 옆에 두고 - 마커 표의 모든 열을 방어할 수 있다.
+- **2시간**: 1-2번 + `checkDocs` - 준비 계층 전체를 방어할 수 있다.
+- **반나절**: 여섯 개 전부 - 최종 표의 모든 숫자를 방어할 수 있다.
+
+## 10. 더 읽을 거리
 
 [`../docs/01_pipeline_overview.md`](../docs/01_pipeline_overview.md) · [`../docs/02_column_dictionary.md`](../docs/02_column_dictionary.md) · [`../docs/03_pupil_size_internals.md`](../docs/03_pupil_size_internals.md) · [`ymtc/README.md`](ymtc/README.md) · [`../docs/04_our_code.md`](../docs/04_our_code.md) · [`../docs/06_faq.md`](../docs/06_faq.md)
 
@@ -2574,7 +2644,42 @@ E-Prime + Tobii，**双瞳孔**。`batchFileConverter_Dataset2.m`（.gazedata �
 - 瞳孔大小是相机像素、单眼；没有记录注视；`pupil_angle` 的单位和 `sp_` 前缀的含义未确认。
 - 本页只描述代码做了什么，不判断结果好坏。数据质量见 [`../docs/05_data_quality.md`](../docs/05_data_quality.md)。
 
-## 9. 延伸阅读
+## 9. 审阅地图：读哪些文件、按什么顺序
+
+如果要自己核一遍代码，这是最短路线。下面的路径都是真实的，行数是从文件里数出来的。
+
+```
+code/ymtc/                        在本仓库里
+  ymtcEventTable.m                184   marker 表本身
+  trk2csv.m                        87   .trk → csv
+  private/readTrk.m                79   文本解析
+  private/labelSamples.m           46   事件 → 样本
+  private/checkTrk.m              134   什么会被记成异常
+  ymtcEventTableBatch / RunCheck / TimingCheck / TrialWide   外围，扫一眼
+
+代码_matlab/                      和研究数据放在一起，不在仓库里
+  csv2kretmat.m                   259   四个段的定义
+  example_kret_pipeline.m         140   滤波 → 插值 → 分段 → 统计
+  ymtcTrialQC.m                   110   三条剔除规则
+  ymtcMergeResults.m              ~110  69 列是怎么拼出来的
+```
+
+| 读 | 读的时候确认什么 | 为什么重要 | 时间 |
+|---|---|---|---|
+| 1. `ymtcEventTable.m` | 五组 marker↔事件；order 怎么选；`condition`/`timing`/`certainty`/`outcome` 从哪来；`diff_s` 是什么；为什么 `run = ceil(trial/21)` | 所有关于条件的说法都压在这个文件上 | 40 分钟 |
+| 2. `trk2csv.m` → `readTrk.m` → `labelSamples.m` → `checkTrk.m` | 一行 csv 怎么产生；什么只记录不修补 | 后面全部环节的输入 | 60 分钟 |
+| 3. `csv2kretmat.m` | 四个段和它们的窗口；时间零点约定 | 决定每个瞳孔列里“countdown”指什么 | 30 分钟 |
+| 4. `example_kret_pipeline.m` + `docs/03` | 哪个滤波在哪一步；哪些是论文默认、哪些是我们改的 | 唯一产生数字的地方 | 40 分钟 |
+| 5. `ymtcTrialQC.m` + `docs/05` | 三条规则和阈值 | 决定哪些 trial 能留下 | 20 分钟 |
+| 6. `ymtcMergeResults.m` | 合并键（`participant`+`run`+`trial`）和列顺序 | 解释那张 69 列的表 | 20 分钟 |
+
+按你能投入的时间，三条路线：
+
+- **30 分钟**：只读第 1 个，旁边开着 `docs/02` 列字典——足够守住 marker 表的每一列。
+- **2 小时**：第 1–2 项，外加跑一次 `checkDocs`——足够守住整个数据准备层。
+- **半天**：六项全读——足够守住最终表里的每一个数字。
+
+## 10. 延伸阅读
 
 [`../docs/01_pipeline_overview.md`](../docs/01_pipeline_overview.md) · [`../docs/02_column_dictionary.md`](../docs/02_column_dictionary.md) · [`../docs/03_pupil_size_internals.md`](../docs/03_pupil_size_internals.md) · [`ymtc/README.md`](ymtc/README.md) · [`../docs/04_our_code.md`](../docs/04_our_code.md) · [`../docs/06_faq.md`](../docs/06_faq.md)
 
