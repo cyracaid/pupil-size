@@ -53,6 +53,14 @@ spec = {
     "run_check",         fullfile(root,'07_checks','07_all_run_check.csv'), ...
         ["participant","status","nSTART","nBurnInStart","nBurnOutStart","nCueStart", ...
          "trialsPerRun","runAssignmentOK","note"]
+    "02_all_qc_summary",fullfile(root,'02_samples','02_all_qc_summary.csv'), ...
+        ["participant","file","status","n_samples","duration_min","sampling_hz","n_events", ...
+         "n_START","n_BurnInStart","n_CueStart","n_CueFinish","n_StimuliStart","n_RatingStart", ...
+         "n_BurnOutStart","pupil_valid_fraction","gaze_valid_fraction","cue_dur_min_s", ...
+         "cue_dur_mean_s","cue_dur_max_s","n_cue_off_setting","countdown_min_s", ...
+         "countdown_mean_s","countdown_max_s","n_malformed_lines","n_issues"]
+    "02_all_issues",fullfile(root,'02_samples','02_all_issues.csv'), ...
+        ["participant","file","severity","code","message"]
     "06_all_merged",fullfile(root,'06_merged','06_all_merged.csv'), ...
         [ev, segCols, qc]
 };
@@ -90,6 +98,30 @@ for i = 1:size(spec, 1)
         fprintf('[FAIL] %-16s %d columns\n', name, numel(got));
         if ~isempty(missingCols), fprintf('         missing in file : %s\n', strjoin(missingCols, ', ')); end
         if ~isempty(extraCols),   fprintf('         not in dictionary: %s\n', strjoin(extraCols, ', ')); end
+    end
+end
+
+%% 03_events: every per-subject file must have the same three columns
+evDir = fullfile(root,'03_events');
+f = dir(fullfile(evDir, '*_events.csv'));
+if isempty(f)
+    fprintf('[skip] %-18s no *_events.csv in %s\n', '03_events', evDir);
+    ok = false;
+else
+    want3 = ["participant","time_ms","event"];
+    bad = 0;
+    for k = 1:numel(f)
+        fid = fopen(fullfile(evDir, f(k).name), 'r');
+        line = fgetl(fid); fclose(fid);
+        got3 = string(strsplit(line, ','));
+        if ~isequal(sort(got3), sort(want3)), bad = bad + 1; end
+    end
+    if bad == 0
+        fprintf('[ok]   %-18s %d files, 3 columns\n', '03_events', numel(f));
+    else
+        ok = false;
+        fprintf('[FAIL] %-18s %d of %d files lack participant,time_ms,event\n', ...
+            '03_events', bad, numel(f));
     end
 end
 
