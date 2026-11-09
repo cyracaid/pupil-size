@@ -572,6 +572,64 @@ Two branches leave 02 — 03 (events) and 04 (pupil metrics) — and neither dep
 
 
 
+
+KRET_PLAIN = {
+ "en": """### In plain words: why this algorithm works
+
+A pupil recording is mostly good data with holes punched in it. Blinks, lid closures and tracker dropouts produce spikes and gaps, and you cannot just delete "values above X": pupil size differs between people, between rooms, and between minutes in the same person.
+
+So the algorithm never looks at the size of a value. It looks at the **shape** of the artifact, with four questions:
+
+| question | what it catches | how |
+|---|---|---|
+| does the diameter change faster than an eye physically can? | blink onset, tracker jump | compare sample-to-sample speed with the typical speed |
+| is there a hole? | lid closure, signal loss | anything wider than 75 ms is a gap; cut 50 ms either side |
+| does it drift away from the local trend? | slow artifacts, partial lid | compare with a 16 Hz trend line |
+| is there a short island of signal in a sea of gaps? | noise, edge effects | islands narrower than 50 ms go |
+
+"Typical" is measured **within the recording**, as a median plus a multiple of the MAD (the median absolute deviation). The median is used instead of the mean because it is not dragged around by the very artifacts being removed: a mean plus SD would let a few huge blinks inflate the threshold until those same blinks pass.
+
+What survives is flagged valid; what does not is left in place but ignored. Small holes are then filled by straight-line interpolation (the gap is short enough that the pupil could not have done much), the result is smoothed at 4 Hz because pupil responses are slow and we do not care about anything faster, and the recording is cut into the task's segments where the mean/min/max are taken.
+
+One consequence worth knowing: because rejected samples are only ignored, they can never come back later. If a threshold is too aggressive, that data is gone for that analysis.""",
+ "ko": """### 쉬운 말로: 이 알고리즘이 왜 통하는가
+
+동공 기록은 대부분 좋은 데이터지만 구멍이 뚫려 있다. 깜박임, 눈꺼풀, 추적 실패가 스파이크와 빈틈을 만든다. 그런데 "X보다 큰 값"을 지우는 식으로는 안 된다. 동공 크기는 사람마다, 방마다, 같은 사람의 몇 분 사이에도 다르기 때문이다.
+
+그래서 알고리즘은 값의 **크기**를 보지 않고 **모양**을 본다. 네 가지 질문이다:
+
+| 질문 | 잡아내는 것 | 방법 |
+|---|---|---|
+| 눈이 물리적으로 변할 수 있는 속도보다 빠른가? | 깜박임 시작, 추적 점프 | 샘플 간 속도를 보통 속도와 비교 |
+| 구멍이 있는가? | 눈꺼풀, 신호 손실 | 75 ms보다 넓은 간격은 갭; 양쪽 50 ms 제거 |
+| 국소 추세에서 벗어나는가? | 느린 아티팩트, 반쯤 감긴 눈 | 16 Hz 추세선과 비교 |
+| 갭 사이에 짧은 섬이 있는가? | 노이즈, 경계 효과 | 50 ms보다 좁은 섬 제거 |
+
+"보통"은 **기록 안에서** 중앙값 + MAD의 배수로 잰다. 평균 대신 중앙값을 쓰는 이유는, 제거하려는 아티팩트가 평균과 SD를 부풀려 스스로를 통과시키기 때문이다.
+
+살아남은 샘플은 유효로 표시되고, 아니면 그대로 두되 무시된다. 작은 구멍은 직선 보간으로 메우고(짧아서 동공이 크게 변할 수 없다), 동공 반응은 느리므로 4 Hz로 평활하며, 과제 구간으로 잘라 평균·최소·최대를 낸다.
+
+알아둘 결과 하나: 거부된 샘플은 무시될 뿐이라 나중에 되살릴 수 없다. 임계값이 너무 공격적이면 그 데이터는 그 분석에서 사라진다.""",
+ "zh": """### 用大白话说：这个算法为什么成立
+
+瞳孔记录大部分是好的，但被打了洞。眨眼、闭眼、追踪丢失会制造尖峰和缺口。你不能简单地"删掉大于 X 的值"——瞳孔大小因人而异、因房间而异，同一个人前后几分钟都不一样。
+
+所以这个算法不看数值**大小**，只看**形状**。它问四个问题：
+
+| 问题 | 抓什么 | 怎么判断 |
+|---|---|---|
+| 变化速度超过眼睛物理上能达到的速度吗？ | 眨眼开始、追踪跳变 | 相邻样本的速度 vs 该记录的典型速度 |
+| 有没有洞？ | 闭眼、信号丢失 | 宽于 75 ms 的算缺口，缺口前后各切 50 ms |
+| 是不是偏离了局部趋势？ | 慢速伪影、半闭眼 | 和 16 Hz 趋势线比 |
+| 缺口中间有没有短促的"孤岛"？ | 噪声、边界效应 | 窄于 50 ms 的孤岛删掉 |
+
+"典型"是在**这条记录内部**测出来的：中位数加上 MAD（中位数绝对偏差）的若干倍。用中位数而不是均值，是因为要删掉的那些伪影会把均值和标准差撑大，把自己藏起来——阈值被抬高后，同样的大眨眼就漏过去了。
+
+活下来的样本被标为有效，没活下来的原地保留但被忽略。小洞用直线插值补上（洞太短，瞳孔来不及做多少变化），然后用 4 Hz 平滑，因为瞳孔反应本来就慢，比这更快的成分我们不要。最后按任务切段，算均值/最小/最大。
+
+有个后果要知道：被否掉的样本只是被忽略，**后面救不回来**。阈值定得太狠，那部分数据在这个分析里就永久消失了。""",
+}
+
 SEGROW = {
  "en": "**Which row carries which segment?** The statistics of a segment appear only on the row of that segment's own start marker: `baseline` on `step == 1` (Onset), `countdown` on `step == 2`, `preOutcome` and `postOutcome` on theirs. So one row is **not** a complete trial. To get one row per trial, join the rows that share `participant` + `run` + `trial` (that is what `ymtcManipulationCheck` does).",
  "ko": "**어느 행이 어느 구간을 담는가?** 구간 통계는 그 구간의 시작 마커 행에만 들어 있다: `baseline`은 `step == 1`(Onset), `countdown`은 `step == 2`, `preOutcome`·`postOutcome`은 각자의 행. 따라서 한 행이 곧 하나의 trial은 **아니다**. trial 단위 행이 필요하면 같은 `participant` + `run` + `trial`의 행들을 결합해야 한다(`ymtcManipulationCheck`가 그렇게 한다).",
@@ -985,6 +1043,8 @@ def sectionlang(lang):
     o.append("")
     # 2 kret
     o.append("## %s" % P["h_kret"])
+    o.append("")
+    o.append(KRET_PLAIN[lang])
     o.append("")
     o.append(P["kret_design"])
     o.append("")
