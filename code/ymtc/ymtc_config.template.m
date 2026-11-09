@@ -16,8 +16,8 @@ function C = ymtc_config(C)
 % ymtc_config.m itself is listed in .gitignore: keep machine paths out of the repo.
 
 % C.root     = '/path/to/your/project';
-% C.eventDir = fullfile(C.root, '03_事件时间线');
-% C.outDir   = fullfile(C.root, '05_事件对照表');
+% C.eventDir = fullfile(C.root, '03_事件');
+% C.outDir   = fullfile(C.root, '05_marker表');
 % C.orderDir = fullfile(C.root, 'TrialOrder-HK');
-% C.qcDir    = fullfile(C.root, '00_数据检查报告');
+% C.qcDir    = fullfile(C.root, '07_检查');
 end

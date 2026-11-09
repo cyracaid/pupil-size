@@ -689,20 +689,20 @@ PROSE = {
 }
 
 TABLE_LIST = [
-    ("per-sample CSV", "02_逐样本csv/<name>.csv", "1 / sample", 21, "trk2csv [ymtc]"),
-    ("QC summary", "02_逐样本csv/trk2csv_qc_summary.csv", "1 / file", 25, "trk2csv_batch [ymtc]"),
-    ("issues", "02_逐样本csv/trk2csv_issues.csv", "1 / anomaly", 5, "trk2csv_batch [ymtc]"),
-    ("events", "03_事件时间线/<sub>_events.csv", "1 / event", 3, "event extraction"),
-    ("event table", "05_事件对照表/<sub>_event_table[_5step].csv", "1 / marker (624 · 372)", 18, "ymtcEventTable [ymtc]"),
-    ("event summary", "05_事件对照表/event_table_summary.csv", "1 / subject", 6, "ymtcEventTableBatch [ymtc]"),
-    ("trials wide", "05_事件对照表/all_subjects_trials_wide.csv", "1 / trial", 14, "ymtcTrialWide [ymtc]"),
-    ("timing check", "05_事件对照表/timing_check.csv", "1 / subject × marker", 7, "ymtcTimingCheck [ymtc]"),
-    ("run check", "00_数据检查报告/run_check.csv", "1 / subject", 9, "ymtcRunCheck [ymtc]"),
-    ("Kret results", "04_Kret流水线输出/kret_results.csv", "1 / trial × segment", 16, "analyzeSegments [Kret code]"),
-    ("trial QC", "04_Kret流水线输出/trials_qc.csv", "1 / trial × segment", 19, "Kret pipeline script"),
-    ("subject QC", "04_Kret流水线输出/subjects_qc.csv", "1 / subject", 5, "Kret pipeline script"),
-    ("segment curves", "04_Kret流水线输出/segments/<name>_leftpupil_segments.csv", "1 / 1000 Hz sample", 7, "exportSegments [Kret code]"),
-    ("final", "06_最终结果/<sub>_final.csv, all_subjects_final.csv", "1 / marker", 69, "ymtcMergeResults [ymtc]"),
+    ("per-sample CSV", "02_样本/<name>.csv", "1 / sample", 21, "trk2csv [ymtc]"),
+    ("QC summary", "02_样本/02_all_qc_summary.csv", "1 / file", 25, "trk2csv_batch [ymtc]"),
+    ("issues", "02_样本/02_all_issues.csv", "1 / anomaly", 5, "trk2csv_batch [ymtc]"),
+    ("events", "03_事件/<sub>_events.csv", "1 / event", 3, "event extraction"),
+    ("event table", "05_marker表/05_<sub>_markers[_5step].csv", "1 / marker (624 · 372)", 18, "ymtcEventTable [ymtc]"),
+    ("event summary", "05_marker表/05_all_markers_summary.csv", "1 / subject", 6, "ymtcEventTableBatch [ymtc]"),
+    ("trials wide", "05_marker表/05_all_trials_wide.csv", "1 / trial", 14, "ymtcTrialWide [ymtc]"),
+    ("timing check", "05_marker表/05_all_timing_check.csv", "1 / subject × marker", 7, "ymtcTimingCheck [ymtc]"),
+    ("run check", "07_检查/07_all_run_check.csv", "1 / subject", 9, "ymtcRunCheck [ymtc]"),
+    ("Kret results", "04_瞳孔指标/04_all_segments.csv", "1 / trial × segment", 16, "analyzeSegments [Kret code]"),
+    ("trial QC", "04_瞳孔指标/04_all_trials_qc.csv", "1 / trial × segment", 19, "Kret pipeline script"),
+    ("subject QC", "04_瞳孔指标/04_all_subjects_qc.csv", "1 / subject", 5, "Kret pipeline script"),
+    ("segment curves", "04_瞳孔指标/segments/<name>_leftpupil_segments.csv", "1 / 1000 Hz sample", 7, "exportSegments [Kret code]"),
+    ("final", "06_合并表/06_<sub>_merged.csv, 06_all_merged.csv", "1 / marker", 69, "ymtcMergeResults [ymtc]"),
 ]
 
 METHODS = [

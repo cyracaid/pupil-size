@@ -23,7 +23,7 @@ trk2csv.m                    entry: one .trk
 trk2csv_batch.m              loop over a folder, collect qc summary and issues
 
 ymtcEventTable.m             entry: one subject's marker table
-  +- reads 03_事件时间线/<sub>_events.csv
+  +- reads 03_事件/<sub>_events.csv
   +- readOrder() (subfunction at the end of the file) reads TrialOrder-HK/*.xlsx
   +- picks the trial order by matching countdown lengths, then writes the table in marker order
 ymtcEventTableBatch.m        loop over subjects, plus a summary and a combined table
@@ -56,7 +56,7 @@ trk2csv_batch.m        a folder of .trk -> <folder>/csv, plus qc summary and iss
 private/               reader, event attachment, checks (not called directly)
 tests/                 simulated .trk files, runtests('tests')
 
-ymtcEventTable.m       one subject -> 05_事件对照表/<sub>_event_table.csv
+ymtcEventTable.m       one subject -> 05_marker表/05_<sub>_markers.csv
 ymtcEventTableBatch.m  every subject in one go, plus a summary and a combined table
 ymtcRunCheck.m         is every run really 21 trials? (uses BurnInStart, not START)
 
@@ -100,8 +100,8 @@ R = ymtcRunCheck;
 Two derived tables, both read the marker table and write one file each:
 
 ```matlab
-T = ymtcTimingCheck;    % -> timing_check.csv: diff_s per subject and marker
-W = ymtcTrialWide;      % -> all_subjects_trials_wide.csv: one row per trial
+T = ymtcTimingCheck;    % -> 05_all_timing_check.csv: diff_s per subject and marker
+W = ymtcTrialWide;      % -> 05_all_trials_wide.csv: one row per trial
 ```
 
 `ymtcTimingCheck` reports `diff_s = measured - designed` for the five markers, so a
@@ -121,10 +121,10 @@ is git-ignored, so machine paths never enter the repository.
 
 | field | default | holds |
 |---|---|---|
-| `eventDir` | `03_事件时间线/` | `<sub>_events.csv`, `participant,time_ms,event` (one row per event) |
+| `eventDir` | `03_事件/` | `<sub>_events.csv`, `participant,time_ms,event` (one row per event) |
 | `orderDir` | `TrialOrder-HK/` | `TrialOrder<order>Run<run>.xlsx`, names / onsets / durations |
-| `outDir` | `05_事件对照表/` | output folder, created if missing |
-| `qcDir` | `00_数据检查报告/` | `ymtcRunCheck` output |
+| `outDir` | `05_marker表/` | output folder, created if missing |
+| `qcDir` | `07_检查/` | `ymtcRunCheck` output |
 
 ```matlab
 C = ymtcConfig()                       % see what is being used
@@ -156,9 +156,9 @@ edit ymtc_config.template.m            % then save it as ymtc_config.m
 | `condition` | `PTCT` / `PTCS` / `PTUO` / `UTCT` / `UTCS` / `UTUO`, read off `Onset<cond>` |
 | `timing`, `certainty`, `outcome` | `P`/`U`, `C`/`U`, and `T`/`S`/`O` (`O` = only revealed at the Outcome) |
 
-`ymtcEventTableBatch` also writes `event_table_summary.csv` (one row per subject: ok /
+`ymtcEventTableBatch` also writes `05_all_markers_summary.csv` (one row per subject: ok /
 skipped_no_file / skipped_no_events / error) and a combined table. `ymtcRunCheck` writes
-`run_check.csv` with the trials-per-run string and a `runAssignmentOK` flag, which is what
+`07_all_run_check.csv` with the trials-per-run string and a `runAssignmentOK` flag, which is what
 guards the `run = ceil(trial / 21)` assumption inside `ymtcEventTable`.
 
 ## Tests

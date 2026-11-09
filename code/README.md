@@ -13,43 +13,47 @@ One page for the original Kret & Sjak-Shie (2019) code **and** our own `ymtc/` l
 Folder numbers (`00`–`06`) are the data folders next to this repository. `[ymtc]` = our code in `code/ymtc/`, `[Kret code]` = the original classes in `code/dataModels/`, `[Kret adapter]` = our glue between them.
 
 ```
-.trk (MRC eye tracker, ~60 Hz)
-  │ trk2csv / trk2csv_batch                       [ymtc]
-  ├─▶ 02 per-sample CSV (21 columns)  +  trk2csv_qc_summary.csv  +  trk2csv_issues.csv
-  │      │
-  │      │ events extracted ──▶ 03 <sub>_events.csv (3 columns)
-  │      │                           │ ymtcEventTable (+ TrialOrder-HK/*.xlsx)      [ymtc]
-  │      │                           ▼
-  │      │                      05 <sub>_event_table[_5step].csv (18 columns)
-  │      │                           ├ ymtcEventTableBatch ─▶ event_table_summary.csv, all_subjects_*.csv
-  │      │                           ├ ymtcTrialWide   ─▶ all_subjects_trials_wide.csv (14)
-  │      │                           ├ ymtcTimingCheck ─▶ timing_check.csv (7)
-  │      │                           └ ymtcRunCheck    ─▶ 00 run_check.csv (9)
-  │      │ csv2kretmat ──▶ <name>.mat (RawFileModel)                                [Kret adapter]
-  │      ▼
-  │   PupilDataModel: filterRawData ─▶ processValidSamples ─▶ analyzeSegments / exportSegments   [Kret code]
-  │      ├─▶ 04 kret_results.csv (16), trials_qc.csv (19), subjects_qc.csv (5)
-  │      └─▶ 04 segments/<name>_leftpupil_segments.csv (7)
-  ▼
-ymtcMergeResults: 5-step event table + kret_results + trials_qc ──▶ 06 <sub>_final.csv, all_subjects_final.csv (69)
+01 raw trk    (01_原始trk/*.trk)      the recording date lives in these names; never renamed
+      │  trk2csv_batch
+      ▼
+02 samples    (02_样本/subNNN_*.csv, 21 cols) + 02_all_qc_summary.csv + 02_all_issues.csv
+      │
+      ├──▶ 03 events      (03_事件/subNNN_events.csv)
+      │        │  ymtcEventTable (+ TrialOrder-HK/*.xlsx)
+      │        ▼
+      │   05 markers     (05_marker表/05_all_markers.csv, 18 cols) · 05_all_markers_5step.csv
+      │        ├ ymtcTrialWide    → 05_all_trials_wide.csv (14)
+      │        └ ymtcTimingCheck  → 05_all_timing_check.csv (7)
+      │
+      └──▶ 04 pupil       (04_瞳孔指标/) csv2kretmat → .mat → PupilDataModel
+               │  04_all_segments.csv (16) · 04_all_trials_qc.csv (19) · 04_all_subjects_qc.csv (5)
+               │  segments/subNNN_leftpupil_segments.csv
+               ▼
+         06 merged      (06_合并表/06_all_merged.csv, 69 cols) = 05 markers + 4 segments x 12 stats + 3 QC flags
+
+side check, feeds nothing downstream:
+     03 events ──ymtcRunCheck──▶ 07 checks  (07_检查/07_all_run_check.csv, 9)
 ```
+
+Two branches leave 02 — 03 (events) and 04 (pupil metrics) — and neither depends on the other.
+03 feeds 05; 04 and 05 are merged into 06. 07 only inspects 03.
 
 | table | file | rows | columns | produced by |
 |---|---|---|---|---|
-| per-sample CSV | `02_逐样本csv/<name>.csv` | 1 / sample | 21 | trk2csv [ymtc] |
-| QC summary | `02_逐样本csv/trk2csv_qc_summary.csv` | 1 / file | 25 | trk2csv_batch [ymtc] |
-| issues | `02_逐样本csv/trk2csv_issues.csv` | 1 / anomaly | 5 | trk2csv_batch [ymtc] |
-| events | `03_事件时间线/<sub>_events.csv` | 1 / event | 3 | event extraction |
-| event table | `05_事件对照表/<sub>_event_table[_5step].csv` | 1 / marker (624 · 372) | 18 | ymtcEventTable [ymtc] |
-| event summary | `05_事件对照表/event_table_summary.csv` | 1 / subject | 6 | ymtcEventTableBatch [ymtc] |
-| trials wide | `05_事件对照表/all_subjects_trials_wide.csv` | 1 / trial | 14 | ymtcTrialWide [ymtc] |
-| timing check | `05_事件对照表/timing_check.csv` | 1 / subject × marker | 7 | ymtcTimingCheck [ymtc] |
-| run check | `00_数据检查报告/run_check.csv` | 1 / subject | 9 | ymtcRunCheck [ymtc] |
-| Kret results | `04_Kret流水线输出/kret_results.csv` | 1 / trial × segment | 16 | analyzeSegments [Kret code] |
-| trial QC | `04_Kret流水线输出/trials_qc.csv` | 1 / trial × segment | 19 | Kret pipeline script |
-| subject QC | `04_Kret流水线输出/subjects_qc.csv` | 1 / subject | 5 | Kret pipeline script |
-| segment curves | `04_Kret流水线输出/segments/<name>_leftpupil_segments.csv` | 1 / 1000 Hz sample | 7 | exportSegments [Kret code] |
-| final | `06_最终结果/<sub>_final.csv, all_subjects_final.csv` | 1 / marker | 69 | ymtcMergeResults [ymtc] |
+| per-sample CSV | `02_样本/<name>.csv` | 1 / sample | 21 | trk2csv [ymtc] |
+| QC summary | `02_样本/02_all_qc_summary.csv` | 1 / file | 25 | trk2csv_batch [ymtc] |
+| issues | `02_样本/02_all_issues.csv` | 1 / anomaly | 5 | trk2csv_batch [ymtc] |
+| events | `03_事件/<sub>_events.csv` | 1 / event | 3 | event extraction |
+| event table | `05_marker表/05_<sub>_markers[_5step].csv` | 1 / marker (624 · 372) | 18 | ymtcEventTable [ymtc] |
+| event summary | `05_marker表/05_all_markers_summary.csv` | 1 / subject | 6 | ymtcEventTableBatch [ymtc] |
+| trials wide | `05_marker表/05_all_trials_wide.csv` | 1 / trial | 14 | ymtcTrialWide [ymtc] |
+| timing check | `05_marker表/05_all_timing_check.csv` | 1 / subject × marker | 7 | ymtcTimingCheck [ymtc] |
+| run check | `07_检查/07_all_run_check.csv` | 1 / subject | 9 | ymtcRunCheck [ymtc] |
+| Kret results | `04_瞳孔指标/04_all_segments.csv` | 1 / trial × segment | 16 | analyzeSegments [Kret code] |
+| trial QC | `04_瞳孔指标/04_all_trials_qc.csv` | 1 / trial × segment | 19 | Kret pipeline script |
+| subject QC | `04_瞳孔指标/04_all_subjects_qc.csv` | 1 / subject | 5 | Kret pipeline script |
+| segment curves | `04_瞳孔指标/segments/<name>_leftpupil_segments.csv` | 1 / 1000 Hz sample | 7 | exportSegments [Kret code] |
+| final | `06_合并表/06_<sub>_merged.csv, 06_all_merged.csv` | 1 / marker | 69 | ymtcMergeResults [ymtc] |
 
 ## 2. The Kret & Sjak-Shie pipeline (original code)
 
@@ -826,43 +830,47 @@ Kret, M. E., & Sjak-Shie, E. E. (2019). Preprocessing pupil size data: Guideline
 폴더 번호(`00`–`06`)는 이 저장소 옆의 데이터 폴더이다. `[ymtc]` = `code/ymtc/`의 우리 코드, `[Kret code]` = `code/dataModels/`의 원본 클래스, `[Kret 어댑터]` = 둘을 잇는 우리 코드.
 
 ```
-.trk (MRC 시선추적기, ~60 Hz)
-  │ trk2csv / trk2csv_batch                       [ymtc]
-  ├─▶ 02 샘플 단위 CSV (21열)  +  trk2csv_qc_summary.csv  +  trk2csv_issues.csv
-  │      │
-  │      │ 이벤트 추출 ──▶ 03 <sub>_events.csv (3열)
-  │      │                           │ ymtcEventTable (+ TrialOrder-HK/*.xlsx)      [ymtc]
-  │      │                           ▼
-  │      │                      05 <sub>_event_table[_5step].csv (18열)
-  │      │                           ├ ymtcEventTableBatch ─▶ event_table_summary.csv, all_subjects_*.csv
-  │      │                           ├ ymtcTrialWide   ─▶ all_subjects_trials_wide.csv (14)
-  │      │                           ├ ymtcTimingCheck ─▶ timing_check.csv (7)
-  │      │                           └ ymtcRunCheck    ─▶ 00 run_check.csv (9)
-  │      │ csv2kretmat ──▶ <name>.mat (RawFileModel)                                [Kret 어댑터]
-  │      ▼
-  │   PupilDataModel: filterRawData ─▶ processValidSamples ─▶ analyzeSegments / exportSegments   [Kret 코드]
-  │      ├─▶ 04 kret_results.csv (16), trials_qc.csv (19), subjects_qc.csv (5)
-  │      └─▶ 04 segments/<name>_leftpupil_segments.csv (7)
-  ▼
-ymtcMergeResults: 5단계 이벤트 표 + kret_results + trials_qc ──▶ 06 <sub>_final.csv, all_subjects_final.csv (69)
+01 원본 trk      01_원본trk/*.trk              녹화 날짜가 파일명에 있음; 이름 변경 금지
+      │  trk2csv_batch
+      ▼
+02 샘플          02_샘플/subNNN_*.csv (21열) + 02_all_qc_summary.csv + 02_all_issues.csv
+      │
+      ├──▶ 03 이벤트    03_이벤트/subNNN_events.csv
+      │        │  ymtcEventTable (+ TrialOrder-HK/*.xlsx)
+      │        ▼
+      │   05 marker 표  05_all_markers.csv (18열) · 05_all_markers_5step.csv
+      │        ├ ymtcTrialWide    → 05_all_trials_wide.csv (14)
+      │        └ ymtcTimingCheck  → 05_all_timing_check.csv (7)
+      │
+      └──▶ 04 눈동자 지표  csv2kretmat → .mat → PupilDataModel
+               │  04_all_segments.csv (16) · 04_all_trials_qc.csv (19) · 04_all_subjects_qc.csv (5)
+               │  segments/subNNN_leftpupil_segments.csv
+               ▼
+         06 병합표      06_all_merged.csv (69열) = 05 marker + 4구간 × 12통계 + 3 QC 플래그
+
+별도 점검(다운스트림 없음):
+     03 이벤트 ──ymtcRunCheck──▶ 07 점검  07_all_run_check.csv (9)
 ```
+
+02에서 두 갈래(03 이벤트 / 04 눈동자 지표)로 나뉘고, 03이 05를 만들며,
+04와 05가 06에서 합쳐진다. 07은 03만 검사한다.
 
 | 표 | 파일 | 행 | 열 | 생성 |
 |---|---|---|---|---|
-| per-sample CSV | `02_逐样本csv/<name>.csv` | 1 / sample | 21 | trk2csv [ymtc] |
-| QC summary | `02_逐样本csv/trk2csv_qc_summary.csv` | 1 / file | 25 | trk2csv_batch [ymtc] |
-| issues | `02_逐样本csv/trk2csv_issues.csv` | 1 / anomaly | 5 | trk2csv_batch [ymtc] |
-| events | `03_事件时间线/<sub>_events.csv` | 1 / event | 3 | event extraction |
-| event table | `05_事件对照表/<sub>_event_table[_5step].csv` | 1 / marker (624 · 372) | 18 | ymtcEventTable [ymtc] |
-| event summary | `05_事件对照表/event_table_summary.csv` | 1 / subject | 6 | ymtcEventTableBatch [ymtc] |
-| trials wide | `05_事件对照表/all_subjects_trials_wide.csv` | 1 / trial | 14 | ymtcTrialWide [ymtc] |
-| timing check | `05_事件对照表/timing_check.csv` | 1 / subject × marker | 7 | ymtcTimingCheck [ymtc] |
-| run check | `00_数据检查报告/run_check.csv` | 1 / subject | 9 | ymtcRunCheck [ymtc] |
-| Kret results | `04_Kret流水线输出/kret_results.csv` | 1 / trial × segment | 16 | analyzeSegments [Kret code] |
-| trial QC | `04_Kret流水线输出/trials_qc.csv` | 1 / trial × segment | 19 | Kret pipeline script |
-| subject QC | `04_Kret流水线输出/subjects_qc.csv` | 1 / subject | 5 | Kret pipeline script |
-| segment curves | `04_Kret流水线输出/segments/<name>_leftpupil_segments.csv` | 1 / 1000 Hz sample | 7 | exportSegments [Kret code] |
-| final | `06_最终结果/<sub>_final.csv, all_subjects_final.csv` | 1 / marker | 69 | ymtcMergeResults [ymtc] |
+| per-sample CSV | `02_样本/<name>.csv` | 1 / sample | 21 | trk2csv [ymtc] |
+| QC summary | `02_样本/02_all_qc_summary.csv` | 1 / file | 25 | trk2csv_batch [ymtc] |
+| issues | `02_样本/02_all_issues.csv` | 1 / anomaly | 5 | trk2csv_batch [ymtc] |
+| events | `03_事件/<sub>_events.csv` | 1 / event | 3 | event extraction |
+| event table | `05_marker表/05_<sub>_markers[_5step].csv` | 1 / marker (624 · 372) | 18 | ymtcEventTable [ymtc] |
+| event summary | `05_marker表/05_all_markers_summary.csv` | 1 / subject | 6 | ymtcEventTableBatch [ymtc] |
+| trials wide | `05_marker表/05_all_trials_wide.csv` | 1 / trial | 14 | ymtcTrialWide [ymtc] |
+| timing check | `05_marker表/05_all_timing_check.csv` | 1 / subject × marker | 7 | ymtcTimingCheck [ymtc] |
+| run check | `07_检查/07_all_run_check.csv` | 1 / subject | 9 | ymtcRunCheck [ymtc] |
+| Kret results | `04_瞳孔指标/04_all_segments.csv` | 1 / trial × segment | 16 | analyzeSegments [Kret code] |
+| trial QC | `04_瞳孔指标/04_all_trials_qc.csv` | 1 / trial × segment | 19 | Kret pipeline script |
+| subject QC | `04_瞳孔指标/04_all_subjects_qc.csv` | 1 / subject | 5 | Kret pipeline script |
+| segment curves | `04_瞳孔指标/segments/<name>_leftpupil_segments.csv` | 1 / 1000 Hz sample | 7 | exportSegments [Kret code] |
+| final | `06_合并表/06_<sub>_merged.csv, 06_all_merged.csv` | 1 / marker | 69 | ymtcMergeResults [ymtc] |
 
 ## 2. Kret & Sjak-Shie 파이프라인 (원본 코드)
 
@@ -1639,43 +1647,46 @@ Kret, M. E., & Sjak-Shie, E. E. (2019). Preprocessing pupil size data: Guideline
 文件夹编号（`00`–`06`）是本仓库旁边的数据文件夹。`[ymtc]` = `code/ymtc/` 里我们的代码，`[Kret code]` = `code/dataModels/` 里的原版类，`[Kret 适配器]` = 我们在两者之间的衔接代码。
 
 ```
-.trk（MRC 眼动仪，约 60 Hz）
-  │ trk2csv / trk2csv_batch                       [ymtc]
-  ├─▶ 02 逐样本 CSV（21 列）  +  trk2csv_qc_summary.csv  +  trk2csv_issues.csv
-  │      │
-  │      │ 提取事件 ──▶ 03 <sub>_events.csv（3 列）
-  │      │                           │ ymtcEventTable（+ TrialOrder-HK/*.xlsx）      [ymtc]
-  │      │                           ▼
-  │      │                      05 <sub>_event_table[_5step].csv（18 列）
-  │      │                           ├ ymtcEventTableBatch ─▶ event_table_summary.csv、all_subjects_*.csv
-  │      │                           ├ ymtcTrialWide   ─▶ all_subjects_trials_wide.csv（14）
-  │      │                           ├ ymtcTimingCheck ─▶ timing_check.csv（7）
-  │      │                           └ ymtcRunCheck    ─▶ 00 run_check.csv（9）
-  │      │ csv2kretmat ──▶ <name>.mat（RawFileModel）                                [Kret 适配器]
-  │      ▼
-  │   PupilDataModel：filterRawData ─▶ processValidSamples ─▶ analyzeSegments / exportSegments   [Kret 代码]
-  │      ├─▶ 04 kret_results.csv（16）、trials_qc.csv（19）、subjects_qc.csv（5）
-  │      └─▶ 04 segments/<name>_leftpupil_segments.csv（7）
-  ▼
-ymtcMergeResults：5 步事件表 + kret_results + trials_qc ──▶ 06 <sub>_final.csv、all_subjects_final.csv（69）
+01 原始 trk      01_原始trk/*.trk              录制日期在文件名里，永不改名
+      │  trk2csv_batch
+      ▼
+02 样本          02_样本/subNNN_*.csv（21 列）+ 02_all_qc_summary.csv + 02_all_issues.csv
+      │
+      ├──▶ 03 事件      03_事件/subNNN_events.csv
+      │        │  ymtcEventTable（+ TrialOrder-HK/*.xlsx）
+      │        ▼
+      │   05 marker 表  05_all_markers.csv（18 列）· 05_all_markers_5step.csv
+      │        ├ ymtcTrialWide    → 05_all_trials_wide.csv（14）
+      │        └ ymtcTimingCheck  → 05_all_timing_check.csv（7）
+      │
+      └──▶ 04 瞳孔指标  csv2kretmat → .mat → PupilDataModel
+               │  04_all_segments.csv（16）· 04_all_trials_qc.csv（19）· 04_all_subjects_qc.csv（5）
+               │  segments/subNNN_leftpupil_segments.csv
+               ▼
+         06 合并表     06_all_merged.csv（69 列）= 05 marker + 4 段 × 12 统计 + 3 个质控列
+
+旁路检查（不喂给下游）：
+     03 事件 ──ymtcRunCheck──▶ 07 检查  07_all_run_check.csv（9）
 ```
+
+02 之后分成两路：03 事件、04 瞳孔指标，互不依赖；03 喂给 05，04 和 05 在 06 合并；07 只检查 03。
 
 | 表 | 文件 | 行 | 列 | 由谁生成 |
 |---|---|---|---|---|
-| per-sample CSV | `02_逐样本csv/<name>.csv` | 1 / sample | 21 | trk2csv [ymtc] |
-| QC summary | `02_逐样本csv/trk2csv_qc_summary.csv` | 1 / file | 25 | trk2csv_batch [ymtc] |
-| issues | `02_逐样本csv/trk2csv_issues.csv` | 1 / anomaly | 5 | trk2csv_batch [ymtc] |
-| events | `03_事件时间线/<sub>_events.csv` | 1 / event | 3 | event extraction |
-| event table | `05_事件对照表/<sub>_event_table[_5step].csv` | 1 / marker (624 · 372) | 18 | ymtcEventTable [ymtc] |
-| event summary | `05_事件对照表/event_table_summary.csv` | 1 / subject | 6 | ymtcEventTableBatch [ymtc] |
-| trials wide | `05_事件对照表/all_subjects_trials_wide.csv` | 1 / trial | 14 | ymtcTrialWide [ymtc] |
-| timing check | `05_事件对照表/timing_check.csv` | 1 / subject × marker | 7 | ymtcTimingCheck [ymtc] |
-| run check | `00_数据检查报告/run_check.csv` | 1 / subject | 9 | ymtcRunCheck [ymtc] |
-| Kret results | `04_Kret流水线输出/kret_results.csv` | 1 / trial × segment | 16 | analyzeSegments [Kret code] |
-| trial QC | `04_Kret流水线输出/trials_qc.csv` | 1 / trial × segment | 19 | Kret pipeline script |
-| subject QC | `04_Kret流水线输出/subjects_qc.csv` | 1 / subject | 5 | Kret pipeline script |
-| segment curves | `04_Kret流水线输出/segments/<name>_leftpupil_segments.csv` | 1 / 1000 Hz sample | 7 | exportSegments [Kret code] |
-| final | `06_最终结果/<sub>_final.csv, all_subjects_final.csv` | 1 / marker | 69 | ymtcMergeResults [ymtc] |
+| per-sample CSV | `02_样本/<name>.csv` | 1 / sample | 21 | trk2csv [ymtc] |
+| QC summary | `02_样本/02_all_qc_summary.csv` | 1 / file | 25 | trk2csv_batch [ymtc] |
+| issues | `02_样本/02_all_issues.csv` | 1 / anomaly | 5 | trk2csv_batch [ymtc] |
+| events | `03_事件/<sub>_events.csv` | 1 / event | 3 | event extraction |
+| event table | `05_marker表/05_<sub>_markers[_5step].csv` | 1 / marker (624 · 372) | 18 | ymtcEventTable [ymtc] |
+| event summary | `05_marker表/05_all_markers_summary.csv` | 1 / subject | 6 | ymtcEventTableBatch [ymtc] |
+| trials wide | `05_marker表/05_all_trials_wide.csv` | 1 / trial | 14 | ymtcTrialWide [ymtc] |
+| timing check | `05_marker表/05_all_timing_check.csv` | 1 / subject × marker | 7 | ymtcTimingCheck [ymtc] |
+| run check | `07_检查/07_all_run_check.csv` | 1 / subject | 9 | ymtcRunCheck [ymtc] |
+| Kret results | `04_瞳孔指标/04_all_segments.csv` | 1 / trial × segment | 16 | analyzeSegments [Kret code] |
+| trial QC | `04_瞳孔指标/04_all_trials_qc.csv` | 1 / trial × segment | 19 | Kret pipeline script |
+| subject QC | `04_瞳孔指标/04_all_subjects_qc.csv` | 1 / subject | 5 | Kret pipeline script |
+| segment curves | `04_瞳孔指标/segments/<name>_leftpupil_segments.csv` | 1 / 1000 Hz sample | 7 | exportSegments [Kret code] |
+| final | `06_合并表/06_<sub>_merged.csv, 06_all_merged.csv` | 1 / marker | 69 | ymtcMergeResults [ymtc] |
 
 ## 2. Kret & Sjak-Shie 流水线（原版代码）
 
