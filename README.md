@@ -32,8 +32,8 @@ The documentation site is trilingual; this README is English only.
 |---|---|
 | `code/ymtc/` | `.trk` -> CSV, the event timeline (`exportEvents`), the event-marker table, the run/timing checks, and `ymtcConfig.m` (no absolute path anywhere) |
 | `docs/` | six pages, full text in EN and ZH plus a KO one-liner per page: pipeline, column dictionary, pupil internals, our code, data quality, FAQ |
-| `tools/` | `build_readme.py` (the reference page) and `build_site.py` (the static site) |
-| `.github/workflows/pages.yml` | publishes `docs/` to GitHub Pages on every push |
+| `tools/` | `build_readme.py` (the reference page), `build_site.py` (the static site), `check_docs.py` (the docs check) |
+| `.github/workflows/pages.yml` | checks the docs, then publishes `docs/` to GitHub Pages on every push |
 
 The column dictionary is the page to start with if you need to know what a number means:
 [`docs/02_column_dictionary.md`](docs/02_column_dictionary.md).

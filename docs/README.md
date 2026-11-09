@@ -36,4 +36,14 @@ passes and `02` silently ages. So a table change means three edits in one commit
 `02` and `03` state the commit they were verified against; pages 01, 04, 05 and 06 are about
 whatever `HEAD` of this branch is. Last full verification: 2026-11-09, `e1b0aa0`.
 
+`tools/check_docs.py` (run by the Pages workflow before every build, stdlib only) checks the
+half that `checkDocs.m` cannot, because it never opens these files: that every relative link
+resolves, that every output file named here is one the reference table list actually produces,
+that a column count in the prose agrees with that list, and that every page is registered in
+`build_site.py`. Run it locally after editing this folder:
+
+```bash
+python3 tools/check_docs.py
+```
+
 The site at <https://cyracaid.github.io/pupil-size/> is built from this folder by `.github/workflows/pages.yml` on every push that touches `docs/` or `tools/`.

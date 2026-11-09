@@ -200,6 +200,8 @@ def guide_linkmap(h):
     frag = ("#" + h.split("#", 1)[1]) if "#" in h else ""
     if name in MAPNAME:
         return MAPNAME[name] + frag
+    if h.startswith("../"):                 # repo-relative, e.g. ../code/ymtc/README.md
+        return GH + re.sub(r"^(\.\./)+", "", h)
     if name.endswith(".md"):
         return GH + "docs/" + h.lstrip("./")
     return h
