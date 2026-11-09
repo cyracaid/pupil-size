@@ -310,6 +310,8 @@ At each instant, the distance in ms between the two real valid samples around it
 
 Each table lists every column. A triangle in the last column unfolds how it is computed, traps and known caveats.
 
+**Which row carries which segment?** The statistics of a segment appear only on the row of that segment's own start marker: `baseline` on `step == 1` (Onset), `countdown` on `step == 2`, `preOutcome` and `postOutcome` on theirs. So one row is **not** a complete trial. To get one row per trial, join the rows that share `participant` + `run` + `trial` (that is what `ymtcManipulationCheck` does).
+
 <details>
 <summary><b>02 · per-sample CSV — <code><name>.csv</code> from <code>trk2csv</code> (21 columns, one row per eye-tracker sample)</b></summary>
 
@@ -1206,6 +1208,8 @@ valid 원시 샘플만: 시각(ms)과 직경.
 
 각 표는 모든 열을 나열한다. 마지막 열의 삼각형을 누르면 계산 방법, 함정, 알려진 주의점이 펼쳐진다.
 
+**어느 행이 어느 구간을 담는가?** 구간 통계는 그 구간의 시작 마커 행에만 들어 있다: `baseline`은 `step == 1`(Onset), `countdown`은 `step == 2`, `preOutcome`·`postOutcome`은 각자의 행. 따라서 한 행이 곧 하나의 trial은 **아니다**. trial 단위 행이 필요하면 같은 `participant` + `run` + `trial`의 행들을 결합해야 한다(`ymtcManipulationCheck`가 그렇게 한다).
+
 <details>
 <summary><b>02 · 샘플 단위 CSV — <code>trk2csv</code>가 쓰는 <code><name>.csv</code> (21열, 시선추적기 샘플마다 한 행)</b></summary>
 
@@ -2100,6 +2104,8 @@ RawFileModel ──saveMatFile──▶ <name>.mat
 ## 3. 输出表，逐列说明
 
 每张表列出每一列。最后一列的三角形展开后是计算方法、陷阱和已知注意事项。
+
+**哪个行带哪个段？** 某段的统计只出现在**该段起始 marker 那一行**：`baseline` 在 `step == 1`（Onset）、`countdown` 在 `step == 2`、`preOutcome` 与 `postOutcome` 在各自的起始行。所以**一行不等于一个完整 trial**。要得到一 trial 一行，必须按 `participant` + `run` + `trial` 把几行合起来（`ymtcManipulationCheck` 就是这么做的）。
 
 <details>
 <summary><b>02 · 逐样本 CSV —— <code>trk2csv</code> 写出的 <code><name>.csv</code>（21 列，每个眼动仪样本一行）</b></summary>

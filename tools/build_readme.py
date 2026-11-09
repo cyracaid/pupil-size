@@ -568,6 +568,13 @@ Two branches leave 02 — 03 (events) and 04 (pupil metrics) — and neither dep
 
 
 
+
+SEGROW = {
+ "en": "**Which row carries which segment?** The statistics of a segment appear only on the row of that segment's own start marker: `baseline` on `step == 1` (Onset), `countdown` on `step == 2`, `preOutcome` and `postOutcome` on theirs. So one row is **not** a complete trial. To get one row per trial, join the rows that share `participant` + `run` + `trial` (that is what `ymtcManipulationCheck` does).",
+ "ko": "**어느 행이 어느 구간을 담는가?** 구간 통계는 그 구간의 시작 마커 행에만 들어 있다: `baseline`은 `step == 1`(Onset), `countdown`은 `step == 2`, `preOutcome`·`postOutcome`은 각자의 행. 따라서 한 행이 곧 하나의 trial은 **아니다**. trial 단위 행이 필요하면 같은 `participant` + `run` + `trial`의 행들을 결합해야 한다(`ymtcManipulationCheck`가 그렇게 한다).",
+ "zh": "**哪个行带哪个段？** 某段的统计只出现在**该段起始 marker 那一行**：`baseline` 在 `step == 1`（Onset）、`countdown` 在 `step == 2`、`preOutcome` 与 `postOutcome` 在各自的起始行。所以**一行不等于一个完整 trial**。要得到一 trial 一行，必须按 `participant` + `run` + `trial` 把几行合起来（`ymtcManipulationCheck` 就是这么做的）。",
+}
+
 REVIEW = {
  "en": """## 9. Review map: what to read, and in what order
 
@@ -988,6 +995,8 @@ def sectionlang(lang):
     o.append("## %s" % P["h_out"])
     o.append("")
     o.append(P["out_intro"])
+    o.append("")
+    o.append(SEGROW[lang])
     o.append("")
     blocks = [
         ("a_sample", table(SAMPLE_COLS, lang)),

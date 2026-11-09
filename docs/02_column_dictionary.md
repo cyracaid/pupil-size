@@ -154,7 +154,7 @@ One row per subject; guards the `run = ceil(trial/21)` assumption.
 
 ## H. The merged final table — `06_merged/06_all_merged.csv` (69 columns)
 
-One row per marker, carrying the pupil statistics of all four segments on the same row:
+One row per marker. **The statistics of a segment sit on the row of that segment's own start marker** (`baseline` on `step == 1`, `countdown` on `step == 2`, `preOutcome` / `postOutcome` on theirs), so a single row is not a complete trial - join the rows that share `participant` + `run` + `trial` to get one row per trial. The column count is:
 
 ```
 18 event columns (§A)  +  4 segments x 12 statistics (§B)  +  3 QC columns (§C)  =  69
