@@ -1,4 +1,61 @@
-_Note: the pipeline implemented in this code has been incorporated into the PhysioData Toolbox, which is a free compiled application aimed at creating an easy-to-use graphical environment for visualizing, segmenting and analyzing physiological data. See https://physiodatatoolbox.leidenuniv.nl/ for more information._
+# pupil-size · YMTC
+
+EN: Turn MRC eye-tracker logs into one analysis table: `.trk` -> per-sample CSV -> event markers -> pupil metrics -> merged table.
+KO: MRC 시선추적 로그를 하나의 분석 표로: `.trk` -> 샘플 CSV -> 마커 -> 눈동자 지표 -> 병합표.
+ZH: 把 MRC 眼动仪日志变成一张分析表：`.trk` → 逐样本 CSV → 事件 marker → 瞳孔指标 → 合并表。
+
+**[Documentation site](https://cyracaid.github.io/pupil-size/)** · [English](https://cyracaid.github.io/pupil-size/index.html) · [한국어](https://cyracaid.github.io/pupil-size/index.ko.html) · [中文](https://cyracaid.github.io/pupil-size/index.zh.html)
+· [Reference: every column](https://cyracaid.github.io/pupil-size/reference.html)
+
+## The pipeline in one picture
+
+```
+01_原始trk/*.trk                 eye-tracker logs (names keep the recording date)
+        |  trk2csv_batch
+        v
+02_样本/*.csv                    one row per sample, 21 columns
+        |
+        +--> 03_事件/            events extracted from the log
+        |        |  ymtcEventTable (+ TrialOrder-HK/*.xlsx)
+        |        v
+        |    05_marker表/        one row per marker, in task order (18 columns)
+        |
+        +--> 04_瞳孔指标/        Kret pipeline: 04_all_segments.csv and friends
+                 |
+                 v
+06_合并表/06_all_merged.csv      one row per marker + four segments of pupil stats (69 columns)
+```
+
+## What this branch adds to upstream
+
+| path | what |
+|---|---|
+| `code/ymtc/` | `.trk` -> CSV, the event-marker table, the run/timing checks, and `ymtcConfig.m` (no absolute path anywhere) |
+| `docs/` | six pages, EN + KO/ZH summaries: pipeline, column dictionary, pupil internals, our code, data quality, FAQ |
+| `tools/` | `build_readme.py` (this reference) and `build_site.py` (the static site) |
+| `.github/workflows/pages.yml` | publishes `docs/` to GitHub Pages on every push |
+
+The column dictionary is the page to start with if you need to know what a number means:
+[`docs/02_column_dictionary.md`](docs/02_column_dictionary.md).
+
+## Quick start
+
+```matlab
+cd code/ymtc
+T = ymtcEventTable('sub001');            % marker table for one subject
+S = ymtcEventTableBatch;                 % every subject, plus a summary
+R = ymtcRunCheck;                        % is every run really 21 trials?
+```
+
+Paths are configured in `ymtcConfig.m`; copy `ymtc_config.template.m` to
+`ymtc_config.m` (git-ignored) to point at data that lives elsewhere.
+
+---
+
+## Upstream
+
+This is a fork of [ElioS-S/pupil-size](https://github.com/ElioS-S/pupil-size) (Kret & Sjak-Shie, 2019,
+*Behavior Research Methods*), with the additions above. The original README follows.
 
 # pupil-size
 MATLAB scripts for preprocessing pupil size timeseries.
