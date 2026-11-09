@@ -17,7 +17,7 @@ The tables, and how they relate:
 ```
 .trk ──trk2csv──> 02_samples/*.csv ──csv2kretmat + example_kret_pipeline──> 04_pupil/
                         │                                                       04_all_segments.csv (16 cols)
-                        └──ymtcEventTable──> 05_markers/*_event_table.csv (18 cols)
+                        └──ymtcEventTable──> 05_markers/05_<sub>_markers.csv (18 cols)
                                                     │
                                                     ├── ymtcTrialWide ──> 05_all_trials_wide.csv (14 cols)
                                                     ├── ymtcTimingCheck ─> 05_all_timing_check.csv (7 cols)

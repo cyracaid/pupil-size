@@ -2,7 +2,7 @@ function S = ymtcTimingCheck(csvFile)
 %YMTCTIMINGCHECK How far the trk markers drift from the task design.
 %
 %   S = ymtcTimingCheck;                               % all subjects together
-%   S = ymtcTimingCheck('.../sub149_event_table.csv');  % one subject
+%   S = ymtcTimingCheck('.../05_sub149_markers.csv');    % one subject
 %
 % Descriptive only. For every subject and every trial-level marker it shows
 % n, mean, SD, min and max of diff_s = measured - designed (seconds):

@@ -157,7 +157,7 @@ edit ymtc_config.template.m            % then save it as ymtc_config.m
   `StimuliStart` = Outcome, `WhitenoiseStart1` = WhiteNoise (parts 2-4 are further marks of
   the same noise), `RatingStart` = Rating (only on some trials).
 
-## Output columns (`*_event_table.csv`)
+## Output columns (`05_<sub>_markers.csv`)
 
 | column | meaning |
 |---|---|

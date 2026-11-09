@@ -1,8 +1,8 @@
 function W = ymtcTrialWide(inFile, outFile)
 %YMTCTRIALWIDE Long event table -> one row per trial, one column per step.
 %
-%   W = ymtcTrialWide;                        % all_subjects_event_table_5step.csv
-%   W = ymtcTrialWide('.../sub149_event_table.csv', '.../sub149_trials_wide.csv');
+%   W = ymtcTrialWide;                        % 05_all_markers_5step.csv
+%   W = ymtcTrialWide('.../05_sub149_markers.csv', '.../sub149_trials_wide.csv');
 %
 % Input : the long table written by ymtcEventTable / ymtcEventTableBatch
 %         (one row per marker). The 5-step and the full version both work;

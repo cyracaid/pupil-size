@@ -10,9 +10,9 @@ function T = ymtcEventTable(subId, options)
 %
 % Input : 03_events/<subId>_events.csv   (trk markers: participant,time_ms,event)
 %         TrialOrder-HK/TrialOrder<o>Run<r>.xlsx   (the task's marker names/onsets/durations)
-% Output: 05_markers/05_<subId>_markers.csv, one row per marker, in time order:
+% Output: 05_markers/05_<sub>_markers.csv, one row per marker, in time order:
 %         Onset<cond> > PredictableTime...(countdown) > Outcome<cond> > WhiteNoise > Rating
-%         With 'NoiseParts', false the file is 05_<subId>_markers_5step.csv instead
+%         With 'NoiseParts', false the file is 05_<sub>_markers_5step.csv instead
 %         (no WhiteNoise_part2-4 rows, 4-5 rows per trial).
 %         Columns: participant, order, run, trial, trial_in_run, ymtc_marker, trk_event,
 %         time_ms, t_from_onset_s, expected_from_onset_s, diff_s, expected_duration_s,
@@ -158,7 +158,7 @@ T = cell2table(rows, 'VariableNames', {'participant', 'order', 'run', 'trial', '
     'ymtc_marker', 'trk_event', 'time_ms', 't_from_onset_s', 'expected_from_onset_s', ...
     'diff_s', 'expected_duration_s', 'condition', 'timing', 'certainty', 'outcome', 'actual_outcome', 'step'});
 % The noise-free version gets its own name, so the two never overwrite
-% each other: <sub>_event_table.csv vs <sub>_event_table_5step.csv.
+% each other: 05_<sub>_markers.csv vs 05_<sub>_markers_5step.csv.
 if options.NoiseParts
     outFile = fullfile(outDir, "05_" + subId + "_markers.csv");
 else

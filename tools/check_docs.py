@@ -90,12 +90,30 @@ for md in sorted(list(DOCS.rglob("*.md")) + [REPO / "README.md"]):
 NAME = re.compile(r"\b\d{2}_[A-Za-z0-9_<>\[\]]*\.csv")
 COUNT = re.compile(r"(\d{1,2})\s*(?:columns|列)")
 DOUBLED = re.compile(r"\b(\d{2})_all_\1_all_")
+# The event table was renamed from <sub>_event_table.csv to 05_<sub>_markers.csv and
+# the old name survived in comments and in a diagram. No file is called *_event_table*,
+# so any occurrence is stale by definition.
+LEGACY = re.compile(r"[A-Za-z0-9_<>*]*_event_table(?:_5step)?\.csv")
 
-for md in sorted(DOCS.rglob("*.md")) + [REPO / "README.md"]:
-    text = md.read_text(encoding="utf-8")
+SOURCES = sorted(list(DOCS.rglob("*.md")) + [REPO / "README.md"] + list((REPO / "code").rglob("*.m")))
+
+
+def read(path):
+    """Upstream .m files are not all UTF-8; we only look at names, so be tolerant."""
+    try:
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return path.read_text(encoding="utf-8", errors="replace")
+
+
+for md in SOURCES:
+    text = read(md)
     for lineno, line in enumerate(text.splitlines(), 1):
         for m in DOUBLED.finditer(line):
             fail(md, f"line {lineno}: doubled prefix {m.group(0)} - the pipeline writes one prefix")
+        for m in LEGACY.finditer(line):
+            fail(md, f"line {lineno}: {m.group(0)} does not exist - the marker table is "
+                     f"05_<sub>_markers.csv / 05_all_markers.csv")
         names = NAME.findall(line)
         for raw in names:
             nm = raw
@@ -103,6 +121,8 @@ for md in sorted(DOCS.rglob("*.md")) + [REPO / "README.md"]:
                 continue
             if any(nm in normalise(k) for k in CANON):
                 continue
+            if re.fullmatch(r"05_sub\d+_markers(_5step)?\.csv", nm):
+                continue                      # a concrete example of the <sub> slot
             fail(md, f"line {lineno}: {nm} is not an output any script in this repository writes "
                      f"(see TABLE_LIST in tools/build_readme.py)")
         counts = COUNT.findall(line)
@@ -132,4 +152,5 @@ if problems:
         print(f"{where}: {msg}")
     print(f"\n{len(problems)} problem(s).")
     sys.exit(1)
-print(f"docs ok: {len(listed)} guide pages, {len(CANON) + len(EXTRA)} output names, links resolve.")
+print(f"docs ok: {len(listed)} guide pages, {len(CANON) + len(EXTRA)} output names, "
+      f"{len(SOURCES)} files scanned, links resolve.")
