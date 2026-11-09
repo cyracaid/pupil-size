@@ -450,6 +450,7 @@ YMTC_TABLE = [
 YMTC_FILES = [
     ("trk2csv.m", T("One `.trk` → one per-sample CSV plus a report. Needs no toolbox.", "`.trk` 하나 → 샘플 단위 CSV 하나와 보고서. 툴박스 불필요.", "一个 `.trk` → 一个逐样本 CSV 和一份报告。不需要工具箱。")),
     ("trk2csv_batch.m", T("A folder of `.trk` → `csv/` plus `02_all_qc_summary.csv` and `02_all_issues.csv`.", "`.trk` 폴더 → `csv/`와 `02_all_qc_summary.csv`, `02_all_issues.csv`.", "一个 `.trk` 文件夹 → `csv/`，外加 `02_all_qc_summary.csv` 与 `02_all_issues.csv`。")),
+    ("exportEvents.m", T("A `.trk` (or a folder) → `03_事件/<sub>_events.csv`, one row per `SoftwareEvent`, with the event's own timestamp. This is what `ymtcEventTable` reads.", "`.trk`(또는 폴더) → `03_事件/<sub>_events.csv`, `SoftwareEvent`마다 한 행, 이벤트 자체의 타임스탬프. `ymtcEventTable`이 읽는 표다.", "`.trk`（或文件夹）→ `03_事件/<sub>_events.csv`，每个 `SoftwareEvent` 一行，带事件自己的时刻。`ymtcEventTable` 读的就是它。")),
     ("private/readTrk.m, labelSamples.m, checkTrk.m", T("Parse the text log; attach events and carry run / trial / phase forward; compare with what the task should have produced (record only).", "텍스트 로그 파싱; 이벤트를 붙이고 run / trial / phase를 이어 간다; 과제가 만들어야 할 것과 비교(기록만).", "解析文本日志；挂事件并向后延续 run / trial / phase；与任务应有的样子对比（只记录）。")),
     ("ymtcEventTable.m", T("One subject → marker table in task order. Picks the trial order by matching countdown lengths.", "피험자 한 명 → 과제 순서의 마커 표. 카운트다운 길이를 맞춰 trial 순서를 고른다.", "单个被试 → 按任务顺序排列的 marker 表。通过匹配倒计时长度选 trial 顺序。")),
     ("ymtcEventTableBatch.m", T("All subjects at once, plus `05_all_markers_summary.csv` and the combined tables.", "모든 피험자를 한 번에, 그리고 `05_all_markers_summary.csv`와 합본 표.", "一次处理所有被试，并产出 `05_all_markers_summary.csv` 与合并表。")),
@@ -909,7 +910,7 @@ TABLE_LIST = [
     ("per-sample CSV", "02_samples/<name>.csv", "1 / sample", 21, "trk2csv [ymtc]"),
     ("QC summary", "02_samples/02_all_qc_summary.csv", "1 / file", 25, "trk2csv_batch [ymtc]"),
     ("issues", "02_samples/02_all_issues.csv", "1 / anomaly", 5, "trk2csv_batch [ymtc]"),
-    ("events", "03_events/<sub>_events.csv", "1 / event", 3, "event extraction"),
+    ("events", "03_events/<sub>_events.csv", "1 / event", 3, "exportEvents [ymtc]"),
     ("event table", "05_markers/05_<sub>_markers[_5step].csv", "1 / marker (624 · 372)", 18, "ymtcEventTable [ymtc]"),
     ("event summary", "05_markers/05_all_markers_summary.csv", "1 / subject", 6, "ymtcEventTableBatch [ymtc]"),
     ("trials wide", "05_markers/05_all_trials_wide.csv", "1 / trial", 14, "ymtcTrialWide [ymtc]"),

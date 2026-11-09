@@ -11,18 +11,18 @@ The documentation site is trilingual; this README is English only.
 
 ```
 01_原始trk/*.trk                 eye-tracker logs (names keep the recording date)
-        |  trk2csv_batch
-        v
-02_样本/*.csv                    one row per sample, 21 columns
-        |
-        +--> 03_事件/            events extracted from the log
-        |        |  ymtcEventTable (+ TrialOrder-HK/*.xlsx)
-        |        v
-        |    05_marker表/        one row per marker, in task order (18 columns)
-        |
-        +--> 04_瞳孔指标/        Kret pipeline: 04_all_segments.csv and friends
-                 |
-                 v
+        |  trk2csv_batch                       |  exportEvents
+        v                                      v
+02_样本/*.csv                    03_事件/<sub>_events.csv   one row per event
+        |                                      |  ymtcEventTable (+ TrialOrder-HK/*.xlsx)
+        |  csv2kretmat                         v
+        v                            05_marker表/   one row per marker, in task order (18 columns)
+04_瞳孔指标/  Kret pipeline                    |
+   04_all_segments.csv and friends             |
+        |                                      |
+        +------------------+-------------------+
+                           |  ymtcMergeResults
+                           v
 06_合并表/06_all_merged.csv      one row per marker + four segments of pupil stats (69 columns)
 ```
 
@@ -30,9 +30,9 @@ The documentation site is trilingual; this README is English only.
 
 | path | what |
 |---|---|
-| `code/ymtc/` | `.trk` -> CSV, the event-marker table, the run/timing checks, and `ymtcConfig.m` (no absolute path anywhere) |
-| `docs/` | six pages, EN + KO/ZH summaries: pipeline, column dictionary, pupil internals, our code, data quality, FAQ |
-| `tools/` | `build_readme.py` (this reference) and `build_site.py` (the static site) |
+| `code/ymtc/` | `.trk` -> CSV, the event timeline (`exportEvents`), the event-marker table, the run/timing checks, and `ymtcConfig.m` (no absolute path anywhere) |
+| `docs/` | six pages, full text in EN and ZH plus a KO one-liner per page: pipeline, column dictionary, pupil internals, our code, data quality, FAQ |
+| `tools/` | `build_readme.py` (the reference page) and `build_site.py` (the static site) |
 | `.github/workflows/pages.yml` | publishes `docs/` to GitHub Pages on every push |
 
 The column dictionary is the page to start with if you need to know what a number means:
@@ -42,13 +42,15 @@ The column dictionary is the page to start with if you need to know what a numbe
 
 ```matlab
 cd code/ymtc
+E = exportEvents('01_原始trk');          % .trk -> 03_事件/*_events.csv (one row per event)
 T = ymtcEventTable('sub001');            % marker table for one subject
 S = ymtcEventTableBatch;                 % every subject, plus a summary
 R = ymtcRunCheck;                        % is every run really 21 trials?
 ```
 
-Paths are configured in `ymtcConfig.m`; copy `ymtc_config.template.m` to
-`ymtc_config.m` (git-ignored) to point at data that lives elsewhere.
+Paths are configured in `ymtcConfig.m` (relative to the project root, so the commands above
+are relative to it too); copy `ymtc_config.template.m` to `ymtc_config.m` (git-ignored) to
+point at data that lives elsewhere.
 
 ---
 

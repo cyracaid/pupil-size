@@ -9,8 +9,8 @@ function results = trk2csv_batch(inFolder, options)
 %                           'Parameters', {'CueDurationSec', 1.0});  % options passed on to trk2csv
 %
 % Besides the per-participant csv files, two tables are written in OutFolder:
-%   trk2csv_qc_summary.csv   one row per file: counts, valid fractions, cue/countdown durations, status
-%   trk2csv_issues.csv       one row per recorded anomaly (participant, file, severity, code, message)
+%   02_all_qc_summary.csv    one row per file: counts, valid fractions, cue/countdown durations, status
+%   02_all_issues.csv        one row per recorded anomaly (participant, file, severity, code, message)
 % A file that cannot be read is recorded as status "failed" with code READ_ERROR; the batch goes on.
 %
 % Name-value options

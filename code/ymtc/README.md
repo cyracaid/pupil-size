@@ -21,9 +21,11 @@ trk2csv.m                    entry: one .trk
   +- private/labelSamples.m  attach events to samples, carry run / trial / phase forward
   +- private/checkTrk.m      compare with what the task should have produced (record only)
 trk2csv_batch.m              loop over a folder, collect qc summary and issues
+exportEvents.m                entry: the event timeline, one row per SoftwareEvent
+  +- private/readTrk.m       same parser, but the event times are used as they are
 
 ymtcEventTable.m             entry: one subject's marker table
-  +- reads 03_events/<sub>_events.csv
+  +- reads 03_events/<sub>_events.csv   (written by exportEvents.m)
   +- readOrder() (subfunction at the end of the file) reads TrialOrder-HK/*.xlsx
   +- picks the trial order by matching countdown lengths, then writes the table in marker order
 ymtcEventTableBatch.m        loop over subjects, plus a summary and a combined table
@@ -35,15 +37,17 @@ ymtcTrialWide.m              reads the marker table, writes one row per trial
 
 Suggested reading order if you want the fast path:
 
-1. `ymtcEventTable.m` (184 lines) - the one people ask about: how markers line up, where
+1. `ymtcEventTable.m` - the one people ask about: how markers line up, where
    the condition comes from, what `diff_s` is, why `run = ceil(trial/21)` holds.
-2. Follow the call chain `trk2csv.m` (84) -> `private/readTrk.m` (76) ->
-   `private/labelSamples.m` (43) -> `private/checkTrk.m` (134). After that you know how one
+2. Follow the call chain `trk2csv.m` -> `private/readTrk.m` ->
+   `private/labelSamples.m` -> `private/checkTrk.m`. After that you know how one
    csv row is produced.
-3. `ymtcEventTableBatch.m` (122) and `ymtcRunCheck.m` (117) are wrappers; skim the structure.
-4. `ymtcTimingCheck.m` (~90) and `ymtcTrialWide.m` (~70) consume the table the wrappers
+3. `exportEvents.m` - twenty lines of real work: why the event table is not just the
+   `event` column of the per-sample csv (that one is snapped to the next sample).
+4. `ymtcEventTableBatch.m` and `ymtcRunCheck.m` are wrappers; skim the structure.
+5. `ymtcTimingCheck.m` and `ymtcTrialWide.m` consume the table the wrappers
    produce; both are read-only until the last line, so they are safe to try.
-5. The pupil-metric layer (not in this folder) lives in `code/dataModels` of this repository.
+6. The pupil-metric layer (not in this folder) lives in `code/dataModels` of this repository.
 
 Every `.m` opens with a three-line purpose header (EN / KO / ZH) - scan those three lines
 first, then decide whether the body is worth reading.
@@ -53,6 +57,7 @@ first, then decide whether the body is worth reading.
 ```
 trk2csv.m              one .trk file  -> one csv (next to the .trk, or -OutFolder)
 trk2csv_batch.m        a folder of .trk -> <folder>/csv, plus qc summary and issues tables
+exportEvents.m         a .trk or a folder -> 03_事件/<sub>_events.csv (one row per event)
 private/               reader, event attachment, checks (not called directly)
 tests/                 simulated .trk files, runtests('tests')
 
@@ -63,7 +68,7 @@ ymtcRunCheck.m         is every run really 21 trials? (uses BurnInStart, not STA
 ymtcTimingCheck.m      per subject and marker: n / mean / SD / min / max of diff_s
 ymtcTrialWide.m        long table -> one row per trial, one column per marker
 ymtcConfig.m           where the folders are (no path is hard-coded)
-checkDocs.m            compares docs/02 with the real table headers
+checkDocs.m            expected columns (kept in the .m) vs the real table headers
 ```
 
 ## Use
@@ -74,11 +79,18 @@ Convert one file:
 [T, report] = trk2csv('sub001_YMTC_0001.trk');
 ```
 
-Convert a folder (writes `csv/` inside it, plus `trk2csv_qc_summary.csv` and
-`trk2csv_issues.csv`):
+Convert a folder (writes `csv/` inside it, plus `02_all_qc_summary.csv` and
+`02_all_issues.csv`):
 
 ```matlab
 results = trk2csv_batch('/path/to/raw_trk');
+```
+
+Build the event timeline `ymtcEventTable` reads (one row per event, exact event time):
+
+```matlab
+E = exportEvents('01_原始trk');                     % -> 03_事件/<sub>_events.csv
+E = exportEvents('01_原始trk', 'Subjects', ["sub119" "sub149"]);
 ```
 
 Build the marker table for one subject:
@@ -121,7 +133,7 @@ is git-ignored, so machine paths never enter the repository.
 
 | field | default | holds |
 |---|---|---|
-| `eventDir` | `03_events/` | `<sub>_events.csv`, `participant,time_ms,event` (one row per event) |
+| `eventDir` | `03_events/` | `<sub>_events.csv`, `participant,time_ms,event` (one row per event), written by `exportEvents` |
 | `orderDir` | `TrialOrder-HK/` | `TrialOrder<order>Run<run>.xlsx`, names / onsets / durations |
 | `outDir` | `05_markers/` | output folder, created if missing |
 | `qcDir` | `07_checks/` | `ymtcRunCheck` output |
@@ -168,5 +180,6 @@ cd('code/ymtc'); runtests('tests')
 ```
 
 The suite builds synthetic `.trk` files: normal logs, irregular spacing, missing `START`,
-no events at all, bad lines, a wrong cue duration, the overwrite switch, and batch handling
-of an unreadable file.
+no events at all, bad lines, a wrong cue duration, the overwrite switch, batch handling
+of an unreadable file, and `exportEvents` (exact event times, header-only output for a
+log without events, the overwrite switch).

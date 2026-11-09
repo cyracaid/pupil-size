@@ -130,8 +130,8 @@ function testBatchWritesSummaryIssuesAndSurvivesBadFile(tc)
     verifyEqual(tc, st('sub012'), 'failed');
     verifyTrue(tc, any(res.issues.code == "READ_ERROR"));
     verifyTrue(tc, any(res.issues.code == "TRIAL_COUNT" & res.issues.participant == "sub011"));
-    verifyTrue(tc, isfile(fullfile(outDir, 'trk2csv_qc_summary.csv')));
-    verifyTrue(tc, isfile(fullfile(outDir, 'trk2csv_issues.csv')));
+    verifyTrue(tc, isfile(fullfile(outDir, '02_all_qc_summary.csv')));
+    verifyTrue(tc, isfile(fullfile(outDir, '02_all_issues.csv')));
     verifyTrue(tc, isfile(fullfile(outDir, 'sub010_a.csv')));
     verifyFalse(tc, isfile(fullfile(outDir, 'sub012_broken.csv')));
 end
@@ -144,6 +144,46 @@ function testBatchDefaultOutFolderAndEmptyFolder(tc)
     verifyTrue(tc, isfile(fullfile(inDir, 'csv', 'sub020_x.csv')));
     emptyDir = fullfile(tc.TestData.dir, 'empty'); mkdir(emptyDir);
     verifyWarning(tc, @() trk2csv_batch(emptyDir), 'trk2csv:noFiles');
+end
+
+% ---------------------------------------------------------------------------------
+% exportEvents: the 03_事件 table that ymtcEventTable reads, one row per event.
+function testExportEventsUsesTheEventTimeNotTheSampleTime(tc)
+    f = makeTrk(tc, 'sub030_ev.trk', fullStructure(1, 2));   % first CueStart at 2500 ms
+    out = fullfile(tc.TestData.dir, 'ev_out');
+    T = exportEvents(f, 'OutFolder', out, 'Quiet', true);
+    verifyTrue(tc, isfile(fullfile(out, 'sub030_events.csv')));
+    verifyEqual(tc, width(T), 3);
+    verifyEqual(tc, T.Properties.VariableNames, {'participant', 'time_ms', 'event'});
+    verifyEqual(tc, height(T), 17);                          % 3 run-level + 2 trials x 7
+    A = readtable(fullfile(out, 'sub030_events.csv'), 'TextType', 'string');
+    cue = A.time_ms(A.event == "CueStart");
+    verifyEqual(tc, numel(cue), 2);
+    verifyEqual(tc, cue(1), 2500);                           % the event's own time, exact
+    % ... while the per-sample table can only carry it to the next sample (~17 ms)
+    P = trk2csv(f, 'Quiet', true);
+    i = find(P.event == "CueStart", 1);
+    verifyGreaterThan(tc, P.time_ms(i), 2500);
+end
+
+% A log without SoftwareEvent lines: header-only csv plus a warning, nothing invented.
+function testExportEventsNoEventsStillWritesHeaderOnly(tc)
+    lines = [header(); sampleLines(1000, 20); "stop timecounter: 1400.0 time: 2026-06-20T13:49:19.170+0900"];
+    f = writeLines(tc, 'sub031_noev.trk', lines);
+    out = fullfile(tc.TestData.dir, 'ev_out_none');
+    verifyWarning(tc, @() exportEvents(f, 'OutFolder', out, 'Quiet', true), 'exportEvents:noEvents');
+    A = readtable(fullfile(out, 'sub031_events.csv'), 'TextType', 'string');
+    verifyEqual(tc, height(A), 0);
+    verifyEqual(tc, width(A), 3);
+end
+
+% Overwrite=false must refuse to clobber an existing events csv.
+function testExportEventsOverwriteFlag(tc)
+    f = makeTrk(tc, 'sub032_ov.trk', fullStructure(1, 1));
+    out = fullfile(tc.TestData.dir, 'ev_out_ov');
+    exportEvents(f, 'OutFolder', out, 'Quiet', true);
+    verifyError(tc, @() exportEvents(f, 'OutFolder', out, 'Overwrite', false, 'Quiet', true), ...
+        'exportEvents:exists');
 end
 
 % ---------------------------------------------------------------------------------
