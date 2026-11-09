@@ -33,7 +33,7 @@ files), so they are not shipped here:
 | `ymtcMergeResults.m` | event row + four segments → `06_merged/06_all_merged.csv` (69 columns) |
 | `ymtcManipulationCheck.m` | joins the rows of one trial (a segment's statistics sit on its own start-marker row) and runs the manipulation check; runs, but its numbers are not recorded in this documentation |
 | `ymtcFilterPlots.m` | filter diagnostics for one recording: raw samples, what each filter rejected, the trend line; writes PNG |
-| `ymtcLayer1Bins.m`, `ymtc_param_sensitivity.m` | analysis-side scripts, not part of the data pipeline |
+| `ymtc_param_sensitivity.m` | analysis-side script, not part of the data pipeline (`ymtcLayer1Bins.m` and `ymtcMergeConditions.m` were deleted on 2026-11-10: the condition labels come from `ymtcEventTable`, so the manual join they performed no longer exists) |
 
 If you need them, they belong with the data, not here: they encode this study's folder
 layout and its analysis decisions.
