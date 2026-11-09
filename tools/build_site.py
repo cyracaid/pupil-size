@@ -219,12 +219,15 @@ for lang in ("en", "ko", "zh"):
     write(fname, shell(lang, big.u("title", lang), body, toc, "ref", switch, 0, expand=True))
 
 # guides
+# There are no Korean guide pages; the Korean entry of the switcher therefore goes back to the
+# Korean home instead of pretending to translate this page. Without it a reader who arrives from
+# index.ko.html has no way back to Korean at all.
 for n, en, zh, titles in GUIDES:
     for lang, fn in (("en", en), ("zh", zh)):
         src = (REPO / "docs" / fn).read_text(encoding="utf-8")
         body, toc = render(src, guide_linkmap)
         out = "guides/g%s%s.html" % (n, ".zh" if lang == "zh" else "")
-        switch = [("en", "g%s.html" % n), ("zh", "g%s.zh.html" % n)]
+        switch = [("en", "g%s.html" % n), ("zh", "g%s.zh.html" % n), ("ko", "../index.ko.html")]
         gl = "".join('<a class="card" href="g%s%s.html"><b>%s</b></a>' % (m, ".zh" if lang == "zh" else "", t[2 if lang == "zh" else 0]) for m, _, _, t in GUIDES)
         body = '<div class="cards" style="margin-top:0">%s</div>' % gl + body
         write(out, shell(lang, titles[2 if lang == "zh" else 0], body, toc, "guides", switch, 1))
