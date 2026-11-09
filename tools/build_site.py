@@ -24,7 +24,8 @@ GUIDES = [
     ("04", "04_our_code.md", "zh/04_我们的代码.md", ("Our code", "우리 코드", "我们的代码")),
     ("05", "05_data_quality.md", "zh/05_数据质量.md", ("Data quality", "데이터 품질", "数据质量")),
     ("06", "06_faq.md", "zh/06_常见问题.md", ("FAQ", "FAQ", "常见问题")),
-    ("07", "07_roadmap.md", "zh/07_路线图.md", ("Roadmap", "로드맵", "路线图")),
+    ("07", "07_reading_path.md", "zh/07_审阅路径.md", ("Reading path", "읽는 순서", "审阅路径")),
+    ("08", "08_roadmap.md", "zh/08_待办.md", ("Roadmap", "로드맵", "路线图与待办")),
 ]
 # md file name -> html file name (relative to site/guides/)
 MAPNAME = {}
@@ -243,21 +244,24 @@ HOME = {
             ("guides/g01.html", "Pipeline overview", "The five layers and what flows between them."),
             ("guides/g05.html", "Data quality", "Missing-data structure, rejection rules, threshold sensitivity."),
             ("guides/g06.html", "FAQ", "The traps that bite most often."),
-            ("guides/g07.html", "Roadmap", "Done, next, and the decisions still open - each item with the file that shows it.")]),
+            ("guides/g07.html", "Reading path", "What to read, in what order, what to skip - upstream and our layer, and where the statistics live."),
+            ("guides/g08.html", "Roadmap and to-do", "Done, next, and the decisions still open - each item with the file that shows it.")]),
     "ko": ("pupil-size · YMTC", "Kret &amp; Sjak-Shie (2019) pupil-size 전처리 코드를 문서화한 포크이며 그 위에 우리 YMTC 계층을 얹었다: MRC <code>.trk</code> → CSV, 이벤트 마커 표, Kret 통계, 병합된 최종 표. 모든 출력 열을 설명한다.",
            [("reference.ko.html", "레퍼런스", "한 페이지에: 파이프라인 지도, 출력 표 14개 열 단위, 설정, 문제 해결."),
             ("guides/g02.html", "열 사전(영어)", "주요 표의 짧은 사전."),
             ("guides/g01.html", "파이프라인 개요(영어)", "다섯 계층과 그 사이 흐름."),
             ("guides/g05.html", "데이터 품질(영어)", "결측 구조, 제외 규칙, 임계값 민감도."),
             ("guides/g06.html", "FAQ(영어)", "가장 자주 걸리는 함정."),
-            ("guides/g07.html", "로드맵(영어)", "끝난 것, 다음 것, 아직 열린 결정 - 각 항목이 어디에 보이는지와 함께.")]),
+            ("guides/g07.html", "읽는 순서(영어)", "무엇을 어떤 순서로 읽고 무엇을 건너뛰는지 - 업스트림과 우리 계층, 통계의 위치."),
+            ("guides/g08.html", "로드맵(영어)", "끝난 것, 다음 것, 아직 열린 결정 - 각 항목이 어디에 보이는지와 함께.")]),
     "zh": ("pupil-size · YMTC", "Kret &amp; Sjak-Shie (2019) pupil-size 预处理代码的带文档 fork，上面加了我们的 YMTC 层：MRC <code>.trk</code> 转 CSV、事件 marker 表、Kret 统计、合并的最终表。每个输出列都有说明。",
            [("reference.zh.html", "参考手册", "全部放在一页：流程总图、14 张输出表逐列说明、设置项、排错。"),
             ("guides/g02.zh.html", "列字典", "主要表的精简字典。"),
             ("guides/g01.zh.html", "流程总览", "五层结构，以及层与层之间流动的内容。"),
             ("guides/g05.zh.html", "数据质量", "缺失结构、剔除规则、阈值敏感性。"),
             ("guides/g06.zh.html", "常见问题", "最容易踩的坑。"),
-            ("guides/g07.zh.html", "路线图", "完成了什么、下一步是什么、哪些还等决定 —— 每条都标出可见位置。")]),
+            ("guides/g07.zh.html", "审阅路径", "按什么顺序读上游和我们自己的代码、哪些可以跳过、统计在哪里。"),
+            ("guides/g08.zh.html", "路线图与待办", "完成了什么、下一步是什么、哪些还等决定 —— 每条都标出可见位置。")]),
 }
 for lang in ("en", "ko", "zh"):
     t, lead, cards = HOME[lang]

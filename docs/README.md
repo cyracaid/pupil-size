@@ -14,7 +14,8 @@ ZH: 从这里开始。`01` 一页看懂流水线，`02` 列字典，`03` 瞳孔�
 | [`05_data_quality.md`](05_data_quality.md) / [`zh/05_数据质量.md`](zh/05_数据质量.md) | missing-data structure, rejection rules, threshold sensitivity | **done** |
 | [Review map](https://cyracaid.github.io/pupil-size/reference.html#9-review-map-what-to-read-and-in-what-order) | the files a reviewer must read, in order, with time estimates | in the reference, §9 |
 | [`06_faq.md`](06_faq.md) / [`zh/06_常见问题.md`](zh/06_常见问题.md) | the traps that bite most often | **done** |
-| [`07_roadmap.md`](07_roadmap.md) / [`zh/07_路线图.md`](zh/07_路线图.md) | what is done, what is next, which decisions are still open — and where each item shows | **living** |
+| [`07_reading_path.md`](07_reading_path.md) / [`zh/07_审阅路径.md`](zh/07_审阅路径.md) | what to read, in what order, what to skip — and where the statistics live | **done** |
+| [`08_roadmap.md`](08_roadmap.md) / [`zh/08_待办.md`](zh/08_待办.md) | what is done, what is next, which decisions are still open — and where each item shows | **living** |
 
 ## How to look something up
 

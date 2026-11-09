@@ -1,4 +1,4 @@
-# 07 · Roadmap
+# 08 · Roadmap and to-do
 
 EN: What is done, what is next, and what is still an open decision — each item placed where it is visible in the repository.
 KO: 무엇이 끝났고, 다음이 무엇이며, 무엇이 아직 결정 대기인지 — 각 항목이 저장소 어디에 보이는지와 함께.
@@ -6,6 +6,8 @@ ZH: 什么做完了、下一步是什么、哪些还等决定 —— 每条都�
 
 Status legend: **done** shipped and used · **next** agreed, not done · **open** needs a decision ·
 **blocked** needs something outside this repository.
+
+This is the *to-do* page. The order to read the code in is a different page: [07 · Reading path](07_reading_path.md).
 
 ## 1. Done
 
